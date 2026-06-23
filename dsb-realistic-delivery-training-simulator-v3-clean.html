@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DSB Realistic Delivery Training Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#071019; --panel:#0f1b25; --panel2:#132433; --ink:#eef6fb; --muted:#9db3c4;
+  --line:#263b4d; --orange:#ff9900; --orange2:#ffc266; --blue:#49b7ff; --green:#34d684;
+  --red:#ff646b; --yellow:#ffd663; --road:#414b55; --grass:#5f8d59; --sky1:#78c7ff; --sky2:#dff4ff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:radial-gradient(circle at top,#132a3b,#071019 48%,#03060a);color:var(--ink);font-family:Inter,system-ui,sans-serif}
+body{padding:18px}
+.wrap{max-width:1500px;margin:0 auto}
+.header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+h1{margin:0;font-family:Orbitron,Inter,sans-serif;font-size:clamp(23px,3vw,38px);line-height:1.1;letter-spacing:1px}
+.sub{margin-top:8px;max-width:920px;color:var(--muted);font-size:14px;line-height:1.5}
+.badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.badge{padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.035);border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.badge b{color:var(--orange2)}
+.tabs{display:flex;gap:8px}
+button{appearance:none;border:1px solid var(--line);background:linear-gradient(180deg,#182938,#101a23);color:var(--ink);padding:10px 14px;border-radius:14px;font-weight:800;cursor:pointer;transition:.15s}
+button:hover{border-color:#557b96;transform:translateY(-1px)}
+button.primary,.tab.active{background:linear-gradient(180deg,#ffc56e,#ff9800);color:#211405;border-color:#ffc56e}
+button.green{background:linear-gradient(180deg,#43e294,#20b86c);color:#071f13;border-color:#60e8a7}
+button.red{background:linear-gradient(180deg,#ff7f84,#ff6168);color:#26080a;border-color:#ff9298}
+button.small{font-size:12px;padding:8px 10px}
+.tab{border-radius:999px;text-transform:uppercase;letter-spacing:.8px;font-size:12px}
+
+.app{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:16px}
+@media(max-width:1180px){.app{grid-template-columns:1fr}}
+.panel{background:linear-gradient(180deg,rgba(18,32,44,.98),rgba(8,15,22,.98));border:1px solid var(--line);border-radius:24px;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.stage-panel{padding:14px}
+.side{padding:16px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+.left-tools,.right-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.counter{font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:13px;letter-spacing:1px}
+.status{font-size:12px;color:var(--muted)}
+.stage-frame{background:linear-gradient(180deg,#294559,#0b151d);padding:12px;border-radius:28px;border:1px solid #3f6178}
+.stage{position:relative;border:2px solid #000;border-radius:18px;overflow:hidden;background:#081018;min-height:600px}
+#scene{display:block;width:100%;height:auto;aspect-ratio:16/9;transition:transform .25s ease;transform-origin:center}
+.overlay{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.chip{padding:8px 12px;border-radius:999px;background:rgba(5,9,13,.68);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(5px);font-size:12px;text-transform:uppercase;letter-spacing:.8px;font-weight:900}
+.chip.wrong{color:var(--red)}.chip.correct{color:var(--green)}.chip.why{color:var(--yellow)}.chip.tip{color:var(--orange2)}.chip.intro{color:var(--blue)}
+.bottom-overlay{position:absolute;left:14px;right:14px;bottom:14px;display:flex;justify-content:flex-start;gap:12px;align-items:flex-end;pointer-events:none}
+.rule{max-width:420px;background:rgba(5,9,13,.77);border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:10px 12px}
+.app-panel{min-width:320px;background:rgba(5,9,13,.79);border:1px solid rgba(255,255,255,.13);border-radius:16px;padding:10px 12px}
+.lbl{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:5px}
+.rule .txt{font-weight:900;font-size:13px;line-height:1.42}
+.rows{display:grid;gap:6px}
+.row{display:flex;justify-content:space-between;gap:10px;padding:7px 9px;background:rgba(255,255,255,.04);border-radius:10px;font-size:12px}
+.row span{color:var(--muted)} .row b{text-align:right}
+.row.wrong{background:rgba(255,100,107,.14);border:1px solid rgba(255,100,107,.3)}
+.row.correct{background:rgba(52,214,132,.14);border:1px solid rgba(52,214,132,.3)}
+.controls{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;margin-top:12px}
+@media(max-width:900px){.controls{grid-template-columns:1fr}}
+.progress-wrap{display:grid;gap:7px}
+.progress-head{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.progress{height:10px;background:#08121a;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.bar{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--blue),var(--green))}
+.control-buttons{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end}
+.zoom{display:flex;gap:6px;border:1px solid var(--line);background:#0b151d;border-radius:15px;padding:8px;align-items:center}
+.zoom span{font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:800}
+.zoom button{width:36px;height:36px;padding:0}
+.app-summary{margin-top:14px}
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:14px}
+@media(max-width:1100px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:700px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+.card h3{margin:0 0 8px;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:var(--orange2)}
+.card p{margin:0;font-size:14px;line-height:1.52}
+.card.bad h3{color:var(--red)} .card.good h3{color:var(--green)} .card.why h3{color:var(--yellow)}
+.side-title{font-size:24px;line-height:1.12;font-weight:900;margin:8px 0 6px}
+.side-sub{font-size:13px;color:var(--blue);font-weight:800;line-height:1.35;margin-bottom:10px}
+.phase-pill{display:inline-flex;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:900;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;border:1px solid var(--line)}
+.phase-pill.wrong{color:var(--red);background:rgba(255,100,107,.14)}.phase-pill.correct{color:var(--green);background:rgba(52,214,132,.14)}.phase-pill.why{color:var(--yellow);background:rgba(255,214,99,.13)}.phase-pill.tip{color:var(--orange2);background:rgba(255,153,0,.13)}.phase-pill.intro{color:var(--blue);background:rgba(73,183,255,.13)}
+.side .card{margin-top:10px}
+.side ul{margin:8px 0 0 18px;padding:0;color:var(--muted);font-size:13px;line-height:1.48}
+.side li{margin:6px 0}
+.practice{display:grid;gap:8px;margin-top:10px}
+.choice{display:flex;justify-content:space-between;gap:8px;align-items:center;text-align:left}
+.feedback{font-size:13px;line-height:1.45;margin-top:8px;color:var(--muted)}
+.feedback.ok{color:var(--green)}.feedback.no{color:var(--red)}
+.phone-screen{margin-top:12px;border:1px solid var(--line);background:linear-gradient(180deg,#09131a,#0f1d28);border-radius:22px;padding:12px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
+.phone-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;font-weight:800}
+.phone-step-list,.phone-option-list{display:grid;gap:7px}
+.phone-step,.phone-option{border:1px solid var(--line);background:#0c171f;border-radius:12px;padding:9px 10px;font-size:12px;line-height:1.4}
+.phone-step small,.phone-option small{display:block;color:var(--muted);font-size:11px;margin-top:2px}
+.phone-step.active{border-color:rgba(73,183,255,.45);background:rgba(73,183,255,.10)}
+.phone-step.good{border-color:rgba(52,214,132,.45);background:rgba(52,214,132,.10)}
+.phone-step.bad{border-color:rgba(255,100,107,.45);background:rgba(255,100,107,.10)}
+.phone-option.selected{border-color:rgba(255,100,107,.45);background:rgba(255,100,107,.10)}
+.phone-option.correct{border-color:rgba(52,214,132,.45);background:rgba(52,214,132,.10)}
+.phone-caption{font-size:11px;color:var(--muted);margin:8px 0 6px;text-transform:uppercase;letter-spacing:.8px;font-weight:800}
+.option-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.option-grid{grid-template-columns:1fr}}
+.selector{padding:14px;margin-top:16px}
+.selector-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.selector h2{margin:0;font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:14px;letter-spacing:.8px;text-transform:uppercase}
+.missions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:900px){.missions{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.missions{grid-template-columns:1fr}}
+.mission-btn{text-align:left;padding:12px;border-radius:16px}
+.mission-btn .n{display:block;font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:11px;letter-spacing:1px;margin-bottom:6px}
+.mission-btn .t{display:block;font-size:14px;font-weight:900;line-height:1.22;margin-bottom:4px}
+.mission-btn .s{display:block;font-size:12px;color:var(--muted)}
+.mission-btn.active{border-color:#ffc56e;box-shadow:0 0 0 1px rgba(255,197,110,.35) inset;background:#132433}
+.quiz{display:none;padding:16px}
+.quiz.active{display:block}
+.quiz-list{display:grid;gap:12px}
+.q{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:14px}
+.qn{font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:11px;letter-spacing:1px;margin-bottom:8px}
+.qt{font-size:15px;font-weight:900;line-height:1.4}.opts{display:grid;gap:8px;margin-top:12px}
+.opt{padding:11px 12px;border-radius:12px;background:#0d171f;border:1px solid var(--line);cursor:pointer;font-size:13px}
+.opt.correct{border-color:rgba(52,214,132,.48);background:rgba(52,214,132,.12)}
+.opt.wrong{border-color:rgba(255,100,107,.48);background:rgba(255,100,107,.12)}
+.fb{display:none;margin-top:10px;font-size:13px;line-height:1.44}.fb.show{display:block}.fb.ok{color:var(--green)}.fb.no{color:var(--red)}
+.score{margin-top:10px;text-align:center;font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:16px}
+.footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.5}
+@media(max-width:980px){.bottom-overlay{flex-direction:column;align-items:stretch}.rule{max-width:100%}.app-panel{min-width:unset}.stage{min-height:420px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1>DSB Realistic Delivery Training Simulator</h1>
+      <div class="sub">This version stops using abstract gray cubes. It uses clearer realistic scenes for houses, apartments, businesses, mailrooms, vans, and the station. The training stays simple: <b>Wrong Way → Why → Correct Way → Coaching Tip</b>.</div>
+      <div class="badges">
+        <div class="badge"><b>Style:</b> realistic training scenes</div>
+        <div class="badge"><b>Interactive:</b> choose the DA option</div>
+        <div class="badge"><b>Flow:</b> Go → Scan → Place → Photo → Swipe</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button id="simTab" class="tab active">Simulator</button>
+      <button id="quizTab" class="tab">Quiz</button>
+    </div>
+  </div>
+
+  <section id="simulatorView">
+    <div class="app">
+      <div class="panel stage-panel">
+        <div class="toolbar">
+          <div class="left-tools">
+            <div id="missionCounter" class="counter"></div>
+            <div id="statusText" class="status"></div>
+          </div>
+          <div class="right-tools">
+            <button class="small" id="prevMission">◀ Mission</button>
+            <button class="small" id="prevPhase">◀ Phase</button>
+            <button class="small primary" id="playPause">Pause</button>
+            <button class="small" id="nextPhase">Phase ▶</button>
+            <button class="small" id="nextMission">Mission ▶</button>
+          </div>
+        </div>
+
+        <div class="stage-frame">
+          <div class="stage">
+            <svg id="scene" viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg"></svg>
+            <div class="overlay">
+              <div id="phaseChip" class="chip intro">Intro</div>
+              <div id="viewChip" class="chip">Realistic Scene</div>
+            </div>
+            <div class="bottom-overlay">
+              <div class="rule">
+                <div class="lbl">Rule</div>
+                <div id="ruleText" class="txt"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="progress-wrap">
+            <div class="progress-head"><span id="progressLabel"></span><span id="timeLabel"></span></div>
+            <div class="progress"><div id="bar" class="bar"></div></div>
+          </div>
+          <div class="control-buttons">
+            <button id="autoMode" class="green">Auto Mode</button>
+            <button id="manualMode">Manual Mode</button>
+            <div class="zoom"><span>Zoom</span><button id="zoomOut">−</button><button id="zoomIn">+</button></div>
+            <button id="restartBtn" class="red">Restart</button>
+          </div>
+        </div>
+
+        <div class="card app-summary">
+          <h3>Delivery App Summary</h3>
+          <div id="phoneRows" class="rows"></div>
+        </div>
+
+        <div class="cards">
+          <div class="card bad"><h3>Wrong way</h3><p id="wrongText"></p></div>
+          <div class="card why"><h3>Why this hurts DSB</h3><p id="whyText"></p></div>
+          <div class="card good"><h3>Correct way</h3><p id="correctText"></p></div>
+          <div class="card"><h3>Coaching tip</h3><p id="tipText"></p></div>
+        </div>
+      </div>
+
+      <aside class="panel side">
+        <div class="counter">Mission briefing</div>
+        <div id="missionTitle" class="side-title"></div>
+        <div id="scenario" class="side-sub"></div>
+        <div id="phasePill" class="phase-pill intro">Intro</div>
+
+        <div class="card">
+          <h3 id="phaseCardTitle">Phase objective</h3>
+          <p id="phaseCardText"></p>
+        </div>
+
+        <div class="card">
+          <h3>Practice decision</h3>
+          <p>Select what the DA should choose in the delivery app.</p>
+          <div id="choiceBox" class="practice"></div>
+          <div id="feedback" class="feedback"></div>
+          <div id="phoneScreen" class="phone-screen"></div>
+        </div>
+
+        <div class="card">
+          <h3>Delivery option rule</h3>
+          <ul>
+            <li><b>Unattended:</b> Front Door / Front Porch, Rear Door / Rear Porch, Side Door / Side Porch, Garage, Mailroom, Locker, Another Safe Location.</li>
+            <li><b>Attended:</b> Customer, Household Member, Receptionist, Mailroom Clerk, Doorman / Concierge.</li>
+            <li><b>Golden rule:</b> the selected option must match the real place or real person.</li>
+          </ul>
+        </div>
+      </aside>
+    </div>
+
+    <div class="panel selector">
+      <div class="selector-head">
+        <h2>Mission Select</h2>
+        <div class="status">Cleaner scenes. Less clutter. More realistic locations.</div>
+      </div>
+      <div id="missions" class="missions"></div>
+    </div>
+  </section>
+
+  <section id="quizView" class="quiz panel">
+    <div class="counter">Knowledge check</div>
+    <div class="card" style="margin:10px 0 12px"><h3>Quiz goal</h3><p>Choose the answer that matches the real delivery location or the real person who received the package.</p></div>
+    <div id="quizList" class="quiz-list"></div>
+    <div id="quizScore" class="score"></div>
+  </section>
+
+  <div class="footer">Standalone HTML training simulator. Built to look more like real delivery locations instead of abstract 3D blocks.</div>
+</div>
+
+<script>
+const svg = document.getElementById('scene');
+const NS = 'http://www.w3.org/2000/svg';
+
+const phases=[
+  {key:'intro',dur:3},{key:'wrong',dur:10},{key:'why',dur:5},{key:'correct',dur:10},{key:'tip',dur:5}
+];
+
+const unattendedOptions=['Front Door / Front Porch','Rear Door / Rear Porch','Side Door / Side Porch','Garage','Mailroom','Locker','Another Safe Location'];
+const attendedOptions=['Customer','Household Member','Receptionist','Mailroom Clerk','Doorman / Concierge'];
+const missions=[
+  {title:'Simultaneous Deliveries',scenario:'Apartment building with 3 separate units',category:'Multiple stops',scene:'apartment',rule:'One package, one location, one delivery.',wrong:'The DA leaves 3 packages in the lobby and completes all 3 stops from one location.',why:'Each package must be completed at its own delivery location. Doing all 3 together creates Simultaneous Deliveries.',correct:'The DA completes Unit 101 first, then Unit 102, then Unit 103. Scan, place, photo, and swipe one by one.',tip:'If the app did not group the stops as one address, treat every package as a separate delivery.',app:{assigned:'Unit 101, Unit 102, Unit 103',wrong:'Completed all together in lobby',right:'Completed one by one at each unit'},choices:['Complete all 3 in lobby','Deliver Unit 101, 102, and 103 one by one','Leave all at leasing office'],answer:1,phoneType:'workflow',options:['Unit 101','Unit 102','Unit 103'],steps:['Go to Unit 101','Scan package at Unit 101','Place package and take photo','Swipe to finish Unit 101','Repeat for Unit 102 and Unit 103']},
+  {title:'Delivered >50m From Pin',scenario:'Townhouse community',category:'Distance from pin',scene:'townhouse',rule:'Deliver and scan near the correct delivery pin.',wrong:'The DA leaves the package near the curb or parking area, around 62 meters away from the geopin.',why:'Leaving the package more than 50 meters from the pin without a valid reason hurts DSB.',correct:'The DA walks from the curb to the townhouse door and completes the delivery at the real pin location.',tip:'If the pin is unsafe or unreachable, contact Driver Support instead of leaving it far away.',app:{assigned:'Front Door / Front Porch',wrong:'Dropped near curb / 62m away',right:'Delivered at front door pin'},choices:['Drop near curb','Deliver at front door pin','Mark as delivered from van'],answer:1,phoneType:'unattended',options:unattendedOptions,steps:['Park safely','Walk to the geopin location','Scan near the correct pin','Place package at front door','Take photo and swipe to finish']},
+  {title:'Incorrect Scan Usage — Mailroom vs Receptionist',scenario:'Business delivery: package belongs in the mailroom',category:'Delivery option mismatch',scene:'business',rule:'The selected option must match where the package actually went.',wrong:'The package was left in the mailroom, but the DA changes the option to Receptionist.',why:'Changing the option creates Incorrect Scan Usage because the selected option does not match the real location/person.',correct:'If the package went to the mailroom, choose Mailroom. If the mailroom employee physically received it, choose Mailroom Clerk.',tip:'Never change the option just to finish faster, skip a photo, or avoid the correct workflow.',app:{assigned:'Business stop',wrong:'Receptionist',right:'Mailroom or Mailroom Clerk'},choices:['Receptionist','Mailroom / Mailroom Clerk','Another Safe Location'],answer:1,phoneType:'business',options:['Mailroom','Mailroom Clerk','Receptionist','Doorman / Concierge','Another Safe Location'],steps:['Enter business stop','Go to the real delivery area','Confirm if package went to mailroom or to a real person','Select the matching option','Finish only after the option matches reality']},
+  {title:'Incorrect Scan Usage — Rear Door vs Front Door',scenario:'House delivery: package is left at the rear door',category:'Unattended location mismatch',scene:'rear',rule:'Choose the exact unattended location where the package was placed.',wrong:'The package is left at the rear door, but the DA changes the option to Front Door / Front Porch.',why:'Changing Rear Door to Front Door creates Incorrect Scan Usage because the selected location is false.',correct:'If the package was left at the Rear Door / Rear Porch, select Rear Door / Rear Porch and take the photo there.',tip:'Use Another Safe Location only when the real drop-off spot is not Front Door, Rear Door, Side Door, Garage, Mailroom, or Locker.',app:{assigned:'Rear Door / Rear Porch',wrong:'Front Door / Front Porch',right:'Rear Door / Rear Porch'},choices:['Front Door / Front Porch','Rear Door / Rear Porch','Another Safe Location'],answer:1,phoneType:'unattended',options:unattendedOptions,steps:['Walk to the actual drop-off spot','Scan package at the real location','Select Rear Door / Rear Porch','Take the photo at the rear door','Swipe to finish']},
+  {title:'No POD on Delivery',scenario:'Front door unattended delivery',category:'Photo on delivery',scene:'pod',rule:'No person present = photo required.',wrong:'The package is left at the front door, but the DA finishes the stop without taking a photo.',why:'An unattended delivery needs a clear Photo-on-Delivery. No photo means a No POD defect.',correct:'The DA places the package safely, steps back, takes a clear photo, and then swipes to finish.',tip:'Keep faces, people, and license plates out of the photo whenever possible.',app:{assigned:'Front Door / Front Porch',wrong:'No photo taken',right:'Photo captured'},choices:['Swipe without photo','Take clear Photo-on-Delivery','Mark as Receptionist'],answer:1,phoneType:'pod',options:unattendedOptions,steps:['Place the package safely','Step back to frame the package','Take a clear Photo-on-Delivery','Review the photo','Swipe to finish']},
+  {title:'Scanned Not Delivered / Not Returned',scenario:'Package still in van at the end of route',category:'RTS compliance',scene:'station',rule:'If you did not deliver it, do not scan it as delivered.',wrong:'The package stays in the van, but the stop is scanned as delivered.',why:'A package that was not delivered must never be marked delivered. It must be returned to station.',correct:'The DA takes the package to RTS, scans it properly, and returns it to the station shelf.',tip:'Before ending route, verify that completed stops are not still physically inside the van.',app:{assigned:'Undeliverable package',wrong:'Scanned delivered',right:'Returned to station (RTS)'},choices:['Scan delivered anyway','Return to station and scan RTS','Leave it in van'],answer:1,phoneType:'rts',options:['Delivered','Customer unavailable','Unable to access','Return to Station (RTS)'],steps:['Find the undelivered package in the van','Do not scan it as delivered','Bring it to RTS','Scan it as returned to station','Place it on the RTS shelf']}
+];
+
+const quizData = missions.map(m=>({q:`${m.title}: what should the DA choose?`,opts:m.choices,ok:m.answer,fb:m.tip}));
+
+const ui={
+  missionTitle:document.getElementById('missionTitle'),scenario:document.getElementById('scenario'),phasePill:document.getElementById('phasePill'),phaseCardTitle:document.getElementById('phaseCardTitle'),phaseCardText:document.getElementById('phaseCardText'),wrongText:document.getElementById('wrongText'),whyText:document.getElementById('whyText'),correctText:document.getElementById('correctText'),tipText:document.getElementById('tipText'),missionCounter:document.getElementById('missionCounter'),phaseChip:document.getElementById('phaseChip'),ruleText:document.getElementById('ruleText'),phoneRows:document.getElementById('phoneRows'),bar:document.getElementById('bar'),progressLabel:document.getElementById('progressLabel'),timeLabel:document.getElementById('timeLabel'),statusText:document.getElementById('statusText'),missions:document.getElementById('missions'),viewChip:document.getElementById('viewChip'),choiceBox:document.getElementById('choiceBox'),feedback:document.getElementById('feedback'),phoneScreen:document.getElementById('phoneScreen')
+};
+let missionIndex=0,phaseIndex=0,phaseTime=0,playing=true,autoMode=true,zoom=1,last=performance.now();
+
+function phase(){return phases[phaseIndex]} function mission(){return missions[missionIndex]}
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function E(tag,attrs={},children=[]){const el=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));children.forEach(c=>el.appendChild(c));return el}
+function T(x,y,txt,attrs={}){return E('text',{x,y,...attrs},[document.createTextNode(txt)])}
+function rect(x,y,w,h,fill,attrs={}){return E('rect',{x,y,width:w,height:h,fill,...attrs})}
+function path(d,fill,attrs={}){return E('path',{d,fill,...attrs})}
+function circle(cx,cy,r,fill,attrs={}){return E('circle',{cx,cy,r,fill,...attrs})}
+function line(x1,y1,x2,y2,attrs={}){return E('line',{x1,y1,x2,y2,...attrs})}
+
+function baseScene(){
+  svg.innerHTML='';
+  const defs=E('defs');
+  defs.appendChild(E('linearGradient',{id:'sky',x1:0,y1:0,x2:0,y2:1},[
+    E('stop',{offset:'0%','stop-color':'#7fcaff'}),E('stop',{offset:'100%','stop-color':'#e6f7ff'})
+  ]));
+  defs.appendChild(E('linearGradient',{id:'glass',x1:0,y1:0,x2:1,y2:1},[
+    E('stop',{offset:'0%','stop-color':'#e8f8ff'}),E('stop',{offset:'100%','stop-color':'#8ed3f5'})
+  ]));
+  defs.appendChild(E('filter',{id:'shadow',x:'-20%',y:'-20%',width:'140%',height:'140%'},[
+    E('feDropShadow',{dx:'0',dy:'8',stdDeviation:'8','flood-color':'#000','flood-opacity':'.25'})
+  ]));
+  svg.appendChild(defs);
+  svg.appendChild(rect(0,0,1280,720,'url(#sky)'));
+  svg.appendChild(circle(1080,95,48,'#fff0c5',{opacity:.85}));
+  [['230','100','70','18'],['300','126','55','16'],['700','92','76','21'],['770','115','58','16']].forEach(c=>svg.appendChild(E('ellipse',{cx:c[0],cy:c[1],rx:c[2],ry:c[3],fill:'#fff',opacity:.45})));
+  svg.appendChild(path('M0 420 C220 360 430 380 630 330 C860 285 1060 340 1280 305 L1280 720 L0 720 Z','#5f8d59'));
+  svg.appendChild(path('M0 520 C240 450 470 480 700 420 C930 370 1080 430 1280 390 L1280 720 L0 720 Z','#4d7c4c',{opacity:.9}));
+  // road + sidewalk
+  svg.appendChild(path('M915 720 L1280 720 L1280 420 L1085 370 Z','#3f4a54'));
+  svg.appendChild(path('M965 720 L1000 720 L1170 410 L1136 400 Z','#59636d',{opacity:.8}));
+  svg.appendChild(path('M760 720 L320 720 L515 395 L900 390 Z','#d1c1a7'));
+  for(let i=0;i<8;i++){svg.appendChild(line(335+i*65,700,520+i*52,400,{stroke:'#b9a98f','stroke-width':2,opacity:.7}));}
+  for(let i=0;i<6;i++){svg.appendChild(line(360,705-i*50,880,392-i*5,{stroke:'#b9a98f','stroke-width':2,opacity:.45}));}
+  svg.appendChild(amazonVan(980,405,.95));
+}
+function label(x,y,txt,color='#fff',bg='#111820'){
+  const g=E('g');
+  const w=Math.max(42,txt.length*8+20);
+  g.appendChild(rect(x-w/2,y-20,w,28,bg,{rx:8,opacity:.88}));
+  g.appendChild(T(x,y,txt,{fill:color,'font-size':14,'font-weight':900,'text-anchor':'middle','dominant-baseline':'middle'}));
+  return g;
+}
+function packageBox(x,y,s=1){const g=E('g',{transform:`translate(${x} ${y}) scale(${s})`});g.appendChild(rect(-25,-20,50,40,'#c98f4f',{rx:4,filter:'url(#shadow)'}));g.appendChild(rect(-25,-20,50,9,'#a9753c',{rx:4}));g.appendChild(path('M-12 8 C0 16 15 13 23 6','none',{stroke:'#ff9900','stroke-width':4,'stroke-linecap':'round'}));return g}
+function person(x,y,type='da',pose='stand'){
+  const colors={da:['#2f88df','#ffe08f','#22468a'],reception:['#8057ff',null,'#3c3d47'],mailroom:['#2baa78',null,'#3c3d47'],customer:['#607d8b',null,'#3c3d47']};
+  const [shirt,vest,hat]=colors[type]||colors.da;
+  const g=E('g',{transform:`translate(${x} ${y})`,filter:'url(#shadow)'});
+  g.appendChild(E('ellipse',{cx:0,cy:45,rx:22,ry:9,fill:'#000',opacity:.18}));
+  g.appendChild(rect(-9,22,8,42,'#1f2a34',{rx:4}));
+  g.appendChild(rect(4,22,8,42,'#1f2a34',{rx:4}));
+  g.appendChild(rect(-20,-20,40,50,shirt,{rx:9}));
+  if(vest){g.appendChild(rect(-23,8,46,8,vest,{rx:3}));}
+  g.appendChild(circle(0,-36,14,'#f2c9a7'));
+  g.appendChild(rect(-16,-51,32,10,hat,{rx:4}));
+  g.appendChild(line(-22,-8,-35,20,{stroke:'#f2c9a7','stroke-width':8,'stroke-linecap':'round'}));
+  g.appendChild(line(22,-8,35, pose==='phone'?-28:20,{stroke:'#f2c9a7','stroke-width':8,'stroke-linecap':'round'}));
+  if(pose==='phone'){g.appendChild(rect(30,-42,15,28,'#111820',{rx:4}));g.appendChild(rect(34,-38,7,18,'#bde8ff',{rx:2}));}
+  if(pose==='box'){g.appendChild(packageBox(32,5,.55));}
+  return g;
+}
+function amazonVan(x,y,s=1){
+  const g=E('g',{transform:`translate(${x} ${y}) scale(${s})`,filter:'url(#shadow)'});
+  g.appendChild(E('ellipse',{cx:80,cy:120,rx:145,ry:36,fill:'#000',opacity:.18}));
+  g.appendChild(path('M-95 15 L110 10 Q150 12 170 45 L195 86 L178 120 L-95 120 Z','#f3f6f8'));
+  g.appendChild(path('M-95 92 L180 92 L180 120 L-95 120 Z','#244f9f'));
+  g.appendChild(path('M110 18 Q145 20 164 52 L106 52 Z','#bfe7ff'));
+  g.appendChild(path('M-70 30 L25 30 L25 88 L-70 88 Z','#fff'));
+  g.appendChild(line(25,30,25,92,{stroke:'#d0d8de','stroke-width':3}));
+  g.appendChild(line(75,18,75,92,{stroke:'#d0d8de','stroke-width':3}));
+  g.appendChild(circle(-35,120,20,'#111820'));g.appendChild(circle(125,120,20,'#111820'));
+  g.appendChild(circle(-35,120,9,'#717b85'));g.appendChild(circle(125,120,9,'#717b85'));
+  g.appendChild(T(8,65,'amazon',{fill:'#ff9900','font-size':26,'font-weight':900,'text-anchor':'middle'}));
+  g.appendChild(path('M-25 76 C0 92 40 89 58 72','none',{stroke:'#ff9900','stroke-width':5,'stroke-linecap':'round'}));
+  return g;
+}
+function pin(x,y,color='#ff646b'){const g=E('g');g.appendChild(line(x,y,x,y-92,{stroke:color,'stroke-width':5,'stroke-linecap':'round'}));g.appendChild(circle(x,y-105,13,color,{stroke:'#fff','stroke-width':4}));return g}
+function arrowPath(points,color='#34d684'){let d=`M${points[0][0]} ${points[0][1]}`;for(let i=1;i<points.length;i++)d+=` L${points[i][0]} ${points[i][1]}`;return path(d,'none',{stroke:color,'stroke-width':7,'stroke-dasharray':'14 12','stroke-linecap':'round'})}
+
+function apartmentScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(485,170,310,270,'#b7a089',{rx:6,filter:'url(#shadow)'}));
+  svg.appendChild(rect(470,145,340,42,'#7c5843',{rx:4}));
+  svg.appendChild(rect(505,200,58,70,'#563f34',{rx:3})); svg.appendChild(T(535,193,'101',{fill:'#ffd663','font-size':16,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(rect(610,200,58,70,'#563f34',{rx:3})); svg.appendChild(T(640,193,'102',{fill:'#ffd663','font-size':16,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(rect(715,200,58,70,'#563f34',{rx:3})); svg.appendChild(T(745,193,'103',{fill:'#ffd663','font-size':16,'font-weight':900,'text-anchor':'middle'}));
+  [520,625,730].forEach(x=>{svg.appendChild(rect(x,300,40,30,'url(#glass)',{rx:4}));svg.appendChild(rect(x,350,40,30,'url(#glass)',{rx:4}));});
+  svg.appendChild(rect(600,370,90,70,'#2b3540',{rx:4}));
+  svg.appendChild(T(645,408,'LOBBY',{fill:'#fff','font-size':15,'font-weight':900,'text-anchor':'middle'}));
+  [535,640,745].forEach(x=>svg.appendChild(pin(x,270,ph==='correct'?'#34d684':'#ff646b')));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){
+    svg.appendChild(person(560,505,'da','phone'));
+    svg.appendChild(packageBox(620,478,.72)); svg.appendChild(packageBox(665,490,.72)); svg.appendChild(packageBox(700,468,.72));
+    svg.appendChild(label(645,448,'Wrong: all 3 completed from lobby','#ff646b'));
+  }
+  if(ph==='correct'){
+    const stops=[[535,270,'Unit 101'],[640,270,'Unit 102'],[745,270,'Unit 103']];
+    const segment=t*3; const idx=Math.min(2,Math.floor(segment)); const local=segment-idx;
+    const from = idx===0 ? [560,505] : [stops[idx-1][0],270];
+    const to = [stops[idx][0],270];
+    svg.appendChild(arrowPath([[560,505],[535,270],[640,270],[745,270]],'#34d684'));
+    svg.appendChild(person(from[0]+(to[0]-from[0])*local, from[1]+(to[1]-from[1])*local,'da','box'));
+    stops.forEach((s,i)=>{ if(i<idx || (i===idx && local>.88)) svg.appendChild(packageBox(s[0],270,.42));});
+    svg.appendChild(label(890,180,'Correct: deliver one by one','#34d684'));
+  }
+}
+function townhouseScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(520,205,270,245,'#d4c1a8',{rx:6,filter:'url(#shadow)'}));
+  svg.appendChild(path('M495 205 L655 145 L820 205 Z','#7a4d3b'));
+  svg.appendChild(rect(670,300,90,115,'#e7eaee',{rx:4}));
+  svg.appendChild(rect(548,325,60,105,'#4a362d',{rx:4}));
+  svg.appendChild(rect(620,245,48,38,'url(#glass)',{rx:4}));
+  svg.appendChild(rect(715,245,48,38,'url(#glass)',{rx:4}));
+  svg.appendChild(rect(540,430,90,45,'#9ca5ad',{rx:4}));
+  svg.appendChild(pin(578,325,ph==='correct'?'#34d684':'#ff646b'));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){
+    svg.appendChild(person(470,565,'da','phone'));
+    svg.appendChild(packageBox(435,555,.8));
+    svg.appendChild(label(485,500,'Wrong: package left 62m away','#ff646b'));
+  }
+  if(ph==='correct'){
+    svg.appendChild(arrowPath([[455,555],[520,500],[575,430],[578,345]],'#34d684'));
+    svg.appendChild(person(455+125*t,555-210*t,'da','box'));
+    if(t>.85)svg.appendChild(packageBox(585,340,.55));
+    svg.appendChild(label(860,190,'Walk to the real pin','#34d684'));
+  }
+  distanceTag(ph==='correct'?Math.round(62*(1-t)):62);
+}
+function businessScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(450,170,430,300,'#8a929d',{rx:8,filter:'url(#shadow)'}));
+  svg.appendChild(rect(450,170,430,42,'#b2bac3',{rx:8}));
+  svg.appendChild(rect(500,310,130,135,'#64707d',{rx:5}));
+  svg.appendChild(rect(685,310,130,135,'#55606e',{rx:5}));
+  svg.appendChild(rect(525,350,70,95,'#2a3138',{rx:4}));
+  svg.appendChild(rect(710,350,70,95,'#2a3138',{rx:4}));
+  svg.appendChild(T(565,292,'MAILROOM',{fill:'#fff','font-size':18,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(T(750,292,'RECEPTION',{fill:'#fff','font-size':18,'font-weight':900,'text-anchor':'middle'}));
+  [510,600,690,780].forEach(x=>svg.appendChild(rect(x,230,52,42,'url(#glass)',{rx:4})));
+  // Only one real recipient shown to keep the example clear
+  svg.appendChild(person(540,465,'mailroom','stand'));
+  svg.appendChild(T(540,532,'Actual recipient: Mailroom Clerk',{fill:'#fff','font-size':14,'font-weight':900,'text-anchor':'middle'}));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){
+    svg.appendChild(person(650,520,'da','phone'));
+    svg.appendChild(packageBox(545,450,.65));
+    svg.appendChild(pin(735,430,'#ff646b'));
+    svg.appendChild(label(735,390,'Wrong option selected: Receptionist','#ff646b'));
+  }
+  if(ph==='correct'){
+    svg.appendChild(arrowPath([[650,520],[585,480],[545,450]],'#34d684'));
+    svg.appendChild(person(650-105*t,520-70*t,'da','box'));
+    svg.appendChild(pin(545,430,'#34d684'));
+    svg.appendChild(label(545,390,'Correct option: Mailroom / Mailroom Clerk','#34d684'));
+  }
+}
+function rearScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(500,210,300,245,'#b7c4d1',{rx:7,filter:'url(#shadow)'}));
+  svg.appendChild(path('M480 210 L650 150 L825 210 Z','#5d6771'));
+  svg.appendChild(rect(520,345,70,105,'#39414a',{rx:4}));
+  svg.appendChild(T(555,330,'FRONT',{fill:'#fff','font-size':16,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(rect(760,385,78,80,'#49525b',{rx:4}));
+  svg.appendChild(T(800,375,'REAR DOOR',{fill:'#fff','font-size':15,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(path('M655 460 C690 520 760 535 805 460','none',{stroke:'#8b866f','stroke-width':16,'stroke-linecap':'round'}));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){svg.appendChild(person(690,555,'da','phone'));svg.appendChild(packageBox(800,465,.65));svg.appendChild(pin(555,420,'#ff646b'));svg.appendChild(label(555,390,'Selected Front Door','#ff646b'));}
+  if(ph==='correct'){svg.appendChild(arrowPath([[690,555],[745,510],[800,465]],'#34d684'));svg.appendChild(person(690+110*t,555-90*t,'da','box'));svg.appendChild(pin(800,460,'#34d684'));svg.appendChild(label(800,420,'Correct: Rear Door','#34d684'));}
+}
+function podScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(510,220,290,230,'#c8ae96',{rx:7,filter:'url(#shadow)'}));
+  svg.appendChild(path('M490 220 L655 155 L825 220 Z','#7a4d3b'));
+  svg.appendChild(rect(550,340,76,110,'#49342b',{rx:4}));
+  svg.appendChild(T(588,330,'FRONT DOOR',{fill:'#fff','font-size':15,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(rect(675,270,60,44,'url(#glass)',{rx:4}));
+  svg.appendChild(packageBox(610,450,.7));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){svg.appendChild(person(720,555,'da','phone'));svg.appendChild(label(700,495,'No photo taken','#ff646b'));noPhotoStamp();}
+  if(ph==='correct'){svg.appendChild(person(720,555,'da','phone'));svg.appendChild(label(700,495,'Photo captured','#34d684'));photoFrame();}
+}
+function stationScene(ph,t){
+  baseScene();
+  svg.appendChild(rect(430,190,520,300,'#6f7e8a',{rx:8,filter:'url(#shadow)'}));
+  svg.appendChild(rect(430,190,520,46,'#98a5b0',{rx:8}));
+  svg.appendChild(T(690,225,'DELIVERY STATION',{fill:'#fff','font-size':30,'font-weight':900,'text-anchor':'middle'}));
+  svg.appendChild(rect(520,335,140,140,'#23303a',{rx:6}));
+  svg.appendChild(rect(720,355,170,105,'#2d3942',{rx:6}));
+  svg.appendChild(T(805,345,'RTS SHELF',{fill:'#ffd663','font-size':18,'font-weight':900,'text-anchor':'middle'}));
+  if(ph==='wrong'||ph==='why'||ph==='tip'){svg.appendChild(person(520,555,'da','phone'));svg.appendChild(packageBox(1025,505,.65));svg.appendChild(label(1025,460,'Package still in van','#ff646b'));}
+  if(ph==='correct'){svg.appendChild(arrowPath([[520,555],[640,500],[805,455]],'#34d684'));svg.appendChild(person(520+280*t,555-100*t,'da','box'));if(t>.8)svg.appendChild(packageBox(805,455,.65));svg.appendChild(label(805,415,'RTS Complete','#34d684'));}
+}
+function distanceTag(val){const g=E('g');g.appendChild(rect(205,132,340,70,'#101a23',{rx:16,opacity:.9}));g.appendChild(T(230,160,'Distance from pin',{fill:'#9db3c4','font-size':13,'font-weight':800}));g.appendChild(rect(230,175,250,14,'#070d12',{rx:7}));g.appendChild(rect(231,176,248*clamp(val/80,0,1),12,val>50?'#ff646b':'#34d684',{rx:6}));g.appendChild(T(505,160,val+'m',{fill:val>50?'#ff646b':'#34d684','font-size':18,'font-weight':900,'text-anchor':'end'}));svg.appendChild(g)}
+function noPhotoStamp(){svg.appendChild(label(250,150,'NO POD','#ff646b'))}
+function photoFrame(){svg.appendChild(rect(780,210,180,120,'none',{stroke:'#34d684','stroke-width':6,rx:10}));svg.appendChild(label(870,190,'PHOTO OK','#34d684'))}
+
+function renderScene(){
+  const m=mission(),p=phase(),t=clamp(phaseTime/p.dur,0,1);
+  ({apartment:apartmentScene,townhouse:townhouseScene,business:businessScene,rear:rearScene,pod:podScene,station:stationScene}[m.scene])(p.key,t);
+  if(p.key==='intro'){
+    svg.appendChild(rect(0,0,1280,720,'rgba(0,0,0,.42)'));
+    svg.appendChild(rect(350,175,580,190,'rgba(5,9,13,.86)',{rx:24}));
+    svg.appendChild(T(640,228,'MISSION '+String(missionIndex+1).padStart(2,'0'),{fill:'#ffc266','font-size':20,'font-weight':900,'text-anchor':'middle','font-family':'Orbitron'}));
+    svg.appendChild(T(640,278,m.title,{fill:'#fff','font-size':32,'font-weight':900,'text-anchor':'middle'}));
+    svg.appendChild(T(640,318,m.scenario,{fill:'#9db3c4','font-size':18,'font-weight':800,'text-anchor':'middle'}));
+  }
+  svg.style.transform=`scale(${zoom})`;
+}
+function renderInfo(){
+  const m=mission(),p=phase();
+  ui.missionTitle.textContent=m.title; ui.scenario.textContent=m.scenario; ui.missionCounter.textContent=`MISSION ${missionIndex+1} / ${missions.length}`;
+  ui.ruleText.textContent=m.rule; ui.wrongText.textContent=m.wrong; ui.whyText.textContent=m.why; ui.correctText.textContent=m.correct; ui.tipText.textContent=m.tip;
+  const rows=[];
+  rows.push({label:'Step 1',value:'Go to location'});
+  rows.push({label:'Step 2',value:'Scan at real location'});
+  if(m.scene==='pod') rows.push({label:'Step 3',value:'Take photo'}); else rows.push({label:'Step 3',value:'Place package'});
+  rows.push({label:'Step 4',value:'Swipe to finish'});
+  rows.push({label:'Assigned',value:m.app.assigned});
+  if(p.key==='wrong'||p.key==='why'){rows.push({label:'DA Selected',value:m.app.wrong,cls:'wrong'}); rows.push({label:'Result',value:'Mismatch / DSB risk',cls:'wrong'});} 
+  if(p.key==='correct'||p.key==='tip'){rows.push({label:'DA Selected',value:m.app.right,cls:'correct'}); rows.push({label:'Result',value:'Match / Correct scan',cls:'correct'});} 
+  if(m.title.includes('No POD')) rows.push({label:'Photo',value:(p.key==='wrong'||p.key==='why')?'Missing':'Captured',cls:(p.key==='wrong'||p.key==='why')?'wrong':'correct'});
+  ui.phoneRows.innerHTML='';
+  rows.forEach(r=>{const el=document.createElement('div'); el.className='row '+(r.cls||''); el.innerHTML=`<span>${r.label}</span><b>${r.value}</b>`; ui.phoneRows.appendChild(el);});
+  const map={intro:['intro','Mission introduction',`Get ready to coach ${m.title}. Watch the mistake, explain why it hurts DSB, then show the correct workflow.`],wrong:['wrong','Wrong way',m.wrong],why:['why','Why this hurts DSB',m.why],correct:['correct','Correct way',m.correct],tip:['tip','Coaching tip',m.tip]};
+  const cfg=map[p.key]; ui.phaseChip.className='chip '+cfg[0]; ui.phaseChip.textContent=cfg[1]; ui.phasePill.className='phase-pill '+cfg[0]; ui.phasePill.textContent=cfg[1]; ui.phaseCardTitle.textContent=cfg[1]; ui.phaseCardText.textContent=cfg[2];
+  ui.statusText.textContent=`${autoMode?'Auto mode':'Manual mode'} • ${playing?'running':'paused'} • ${p.dur.toFixed(1)}s phase`;
+  ui.progressLabel.textContent=cfg[1]+' progress'; ui.timeLabel.textContent=`${phaseTime.toFixed(1)} / ${p.dur.toFixed(1)} sec`; ui.bar.style.width=(phaseTime/p.dur*100)+'%';
+  ui.viewChip.textContent=`Zoom ${zoom.toFixed(1)}x`;
+}
+function renderPhoneScreen(){
+  const m=mission(), p=phase();
+  const currentStep = p.key==='intro' ? 0 : p.key==='wrong' ? 2 : p.key==='why' ? 3 : p.key==='correct' ? 4 : 5;
+  const activeOption = (p.key==='wrong'||p.key==='why') ? m.app.wrong : (p.key==='correct'||p.key==='tip') ? m.app.right : '';
+  const stepsHtml = m.steps.map((s,i)=>`<div class="phone-step ${(i+1)===currentStep?'active':''} ${(p.key==='wrong'&& i===3)?'bad':''} ${(p.key==='correct'&& i===3)?'good':''}"><b>Step ${i+1}</b> ${s}</div>`).join('');
+  const opts=(m.options||[]).map(o=>{let cls='phone-option'; if(activeOption && activeOption.includes(o)) cls += (p.key==='wrong'||p.key==='why') ? ' selected' : ' correct'; return `<div class="phone-option ${cls.replace('phone-option ','')}"><b>${o}</b><small>${(activeOption && activeOption.includes(o)) ? ((p.key==='wrong'||p.key==='why') ? 'DA changed to this option' : 'This matches the real location') : 'Available app option'}</small></div>`}).join('');
+  ui.phoneScreen.innerHTML = `<div class="phone-top"><span>Delivery app phone</span><span>${mission().scene.toUpperCase()}</span></div><div class="phone-caption">Process</div><div class="phone-step-list">${stepsHtml}</div><div class="phone-caption">Available options</div><div class="option-grid phone-option-list">${opts}</div>`;
+}
+function renderChoices(){
+  const m=mission(); ui.choiceBox.innerHTML=''; ui.feedback.textContent=''; ui.feedback.className='feedback';
+  m.choices.forEach((c,i)=>{const b=document.createElement('button');b.className='choice';b.innerHTML=`<span>${c}</span><span>${i===m.answer?'✓':''}</span>`;b.onclick=()=>{if(i===m.answer){ui.feedback.textContent='Correct. The option matches the real delivery location.';ui.feedback.className='feedback ok';}else{ui.feedback.textContent='Wrong. Do not change the option. The selected app option must match the real place or the real person.';ui.feedback.className='feedback no';}};ui.choiceBox.appendChild(b);});
+  renderPhoneScreen();
+}
+function renderMissions(){ui.missions.innerHTML='';missions.forEach((m,i)=>{const b=document.createElement('button');b.className='mission-btn '+(i===missionIndex?'active':'');b.innerHTML=`<span class="n">MISSION ${String(i+1).padStart(2,'0')}</span><span class="t">${m.title}</span><span class="s">${m.scenario}</span>`;b.onclick=()=>{missionIndex=i;phaseIndex=0;phaseTime=0;playing=true;renderAll(true)};ui.missions.appendChild(b);});}
+function renderAll(grid=false){renderInfo();renderChoices();if(grid)renderMissions();renderScene();}
+function nextPhase(){if(phaseIndex<phases.length-1){phaseIndex++;phaseTime=0}else{if(autoMode)nextMission();else{phaseTime=phase().dur;playing=false}}}
+function prevPhase(){if(phaseIndex>0){phaseIndex--;phaseTime=0}else phaseTime=0;renderAll();}
+function nextMission(){missionIndex=(missionIndex+1)%missions.length;phaseIndex=0;phaseTime=0;renderAll(true)}
+function prevMission(){missionIndex=(missionIndex+missions.length-1)%missions.length;phaseIndex=0;phaseTime=0;renderAll(true)}
+function restart(){phaseIndex=0;phaseTime=0;renderAll()}
+function tick(ts){const dt=Math.min((ts-last)/1000,.05);last=ts;if(playing){phaseTime+=dt;if(phaseTime>=phase().dur){if(autoMode)nextPhase();else{phaseTime=phase().dur;playing=false}}}renderAll(false);requestAnimationFrame(tick)}
+document.getElementById('playPause').onclick=()=>{playing=!playing;document.getElementById('playPause').textContent=playing?'Pause':'Play'};
+document.getElementById('prevMission').onclick=prevMission;document.getElementById('nextMission').onclick=nextMission;document.getElementById('prevPhase').onclick=prevPhase;document.getElementById('nextPhase').onclick=()=>{if(autoMode)phaseTime=phase().dur;else nextPhase()};
+document.getElementById('autoMode').onclick=()=>{autoMode=true;playing=true;document.getElementById('playPause').textContent='Pause'};document.getElementById('manualMode').onclick=()=>{autoMode=false;playing=false;document.getElementById('playPause').textContent='Play'};
+document.getElementById('zoomIn').onclick=()=>{zoom=clamp(zoom+.1,1,1.6);renderScene()};document.getElementById('zoomOut').onclick=()=>{zoom=clamp(zoom-.1,1,1.6);renderScene()};document.getElementById('restartBtn').onclick=()=>{restart();playing=true;document.getElementById('playPause').textContent='Pause'};
+document.getElementById('simTab').onclick=()=>{document.getElementById('simTab').classList.add('active');document.getElementById('quizTab').classList.remove('active');document.getElementById('simulatorView').style.display='block';document.getElementById('quizView').classList.remove('active')};
+document.getElementById('quizTab').onclick=()=>{document.getElementById('quizTab').classList.add('active');document.getElementById('simTab').classList.remove('active');document.getElementById('simulatorView').style.display='none';document.getElementById('quizView').classList.add('active')};
+function buildQuiz(){const wrap=document.getElementById('quizList'),score=document.getElementById('quizScore');let answered=0,correct=0;quizData.forEach((q,i)=>{const card=document.createElement('div');card.className='q';card.innerHTML=`<div class="qn">QUESTION ${i+1}</div><div class="qt">${q.q}</div>`;const opts=document.createElement('div');opts.className='opts';const fb=document.createElement('div');fb.className='fb';q.opts.forEach((o,oi)=>{const btn=document.createElement('div');btn.className='opt';btn.textContent=o;btn.onclick=()=>{if(card.dataset.done)return;card.dataset.done=1;answered++;if(oi===q.ok){btn.classList.add('correct');correct++;fb.className='fb ok show';fb.textContent='✓ '+q.fb}else{btn.classList.add('wrong');opts.children[q.ok].classList.add('correct');fb.className='fb no show';fb.textContent='✕ '+q.fb}if(answered===quizData.length)score.textContent=`FINAL SCORE: ${correct} / ${quizData.length}`};opts.appendChild(btn)});card.appendChild(opts);card.appendChild(fb);wrap.appendChild(card)});}
+window.addEventListener('keydown',e=>{if(e.key===' '){e.preventDefault();playing=!playing} if(e.key==='ArrowRight'){if(autoMode)phaseTime=phase().dur;else nextPhase()} if(e.key==='ArrowLeft')prevPhase(); if(e.key==='+'||e.key==='='){zoom=clamp(zoom+.1,1,1.6)} if(e.key==='-'||e.key==='_'){zoom=clamp(zoom-.1,1,1.6)}});
+renderMissions();buildQuiz();renderAll(true);requestAnimationFrame(tick);
+</script>
+</body>
+</html>
