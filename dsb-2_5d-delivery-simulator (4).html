@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DSB 2.5D Delivery Training Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#091117;
+    --panel:#101b23;
+    --panel2:#152430;
+    --panel3:#0c141b;
+    --line:#283745;
+    --text:#edf5fb;
+    --muted:#9bb0c1;
+    --orange:#ff9900;
+    --orange2:#ffb648;
+    --blue:#4db6ff;
+    --green:#34d683;
+    --red:#ff5d63;
+    --yellow:#ffd45f;
+    --shadow:0 18px 50px rgba(0,0,0,.45);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:radial-gradient(circle at top,#132634 0,#091117 45%,#05090d 100%);color:var(--text);font-family:Inter,system-ui,sans-serif}
+  body{padding:18px}
+  .wrap{max-width:1380px;margin:0 auto}
+  .hero{display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}
+  .hero h1{margin:0;font-family:Orbitron,Inter,sans-serif;font-weight:800;letter-spacing:1.5px;font-size:clamp(20px,3.2vw,38px)}
+  .hero .sub{margin-top:8px;color:var(--muted);max-width:800px;line-height:1.45}
+  .badge-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+  .mini-badge{border:1px solid var(--line);background:rgba(255,255,255,.03);padding:8px 12px;border-radius:999px;font-size:12px;color:var(--muted)}
+  .mini-badge b{color:var(--orange2)}
+
+  .shell{display:grid;grid-template-columns:320px 1fr;gap:16px}
+  @media (max-width:1100px){.shell{grid-template-columns:1fr}}
+
+  .panel{background:linear-gradient(180deg,rgba(19,29,38,.98),rgba(10,17,23,.98));border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow)}
+  .side{padding:16px}
+  .title-sm{font-family:Orbitron,Inter,sans-serif;font-size:12px;letter-spacing:1.4px;color:var(--orange2);text-transform:uppercase}
+  .mission-title{font-size:26px;font-weight:800;line-height:1.15;margin:8px 0 6px}
+  .scenario{font-size:14px;color:var(--blue);font-weight:700;margin-bottom:14px}
+  .phase-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-bottom:14px}
+  .phase-pill.intro{background:rgba(77,182,255,.16);color:var(--blue);border:1px solid rgba(77,182,255,.3)}
+  .phase-pill.wrong{background:rgba(255,93,99,.16);color:var(--red);border:1px solid rgba(255,93,99,.3)}
+  .phase-pill.why{background:rgba(255,212,95,.14);color:var(--yellow);border:1px solid rgba(255,212,95,.3)}
+  .phase-pill.correct{background:rgba(52,214,131,.16);color:var(--green);border:1px solid rgba(52,214,131,.3)}
+  .phase-pill.tip{background:rgba(255,153,0,.16);color:var(--orange2);border:1px solid rgba(255,153,0,.3)}
+
+  .text-card{background:var(--panel3);border:1px solid var(--line);border-radius:18px;padding:14px 14px 12px;margin-top:10px}
+  .text-card h3{margin:0 0 8px 0;font-size:13px;letter-spacing:.7px;text-transform:uppercase;color:var(--orange2)}
+  .text-card p{margin:0;color:var(--text);font-size:14px;line-height:1.5}
+  .text-card ul{margin:8px 0 0 18px;padding:0}
+  .text-card li{margin:6px 0;color:var(--muted);font-size:13px;line-height:1.45}
+
+  .flow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .flow .small{background:var(--panel3);border:1px solid var(--line);border-radius:16px;padding:12px}
+  .flow .small h4{margin:0 0 6px;font-size:12px;letter-spacing:.7px;text-transform:uppercase}
+  .flow .small p{margin:0;font-size:13px;color:var(--muted);line-height:1.4}
+  .flow .bad h4{color:var(--red)} .flow .good h4{color:var(--green)}
+
+  .console{padding:14px;display:grid;gap:12px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .topbar-left{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .topbar-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .status{font-size:12px;color:var(--muted)}
+  .mission-counter{font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:13px;letter-spacing:1px}
+
+  .screen-frame{background:linear-gradient(180deg,#263749,#0d141b);padding:12px;border-radius:26px;border:1px solid #3a4e61;box-shadow:inset 0 0 0 3px rgba(255,255,255,.05),0 20px 60px rgba(0,0,0,.45)}
+  .screen-inner{position:relative;background:#070d12;border-radius:18px;overflow:hidden;border:2px solid #000}
+  canvas{display:block;width:100%;height:auto;aspect-ratio:16/9;background:linear-gradient(180deg,#6dbaf4 0,#bde4ff 26%,#cadccf 27%,#2c3d37 28%,#172128 100%)}
+  .overlay-top{position:absolute;top:14px;left:14px;right:14px;display:flex;justify-content:space-between;pointer-events:none}
+  .overlay-chip{padding:8px 12px;border-radius:999px;font-size:12px;font-weight:800;backdrop-filter:blur(4px);background:rgba(8,12,16,.62);border:1px solid rgba(255,255,255,.12);text-transform:uppercase;letter-spacing:.9px}
+  .overlay-chip.wrong{color:var(--red)}
+  .overlay-chip.correct{color:var(--green)}
+  .overlay-chip.intro{color:var(--blue)}
+  .overlay-chip.why{color:var(--yellow)}
+  .overlay-chip.tip{color:var(--orange2)}
+  .overlay-bottom{position:absolute;left:14px;right:14px;bottom:14px;display:flex;justify-content:space-between;gap:10px;align-items:flex-end}
+  .rule-box,.phone-box{background:rgba(7,11,15,.72);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 12px;backdrop-filter:blur(6px)}
+  .rule-box{max-width:60%}
+  .rule-box .lbl,.phone-box .lbl{font-size:11px;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .rule-box .txt{font-size:13px;line-height:1.45;font-weight:700}
+  .rule-box .txt .em{color:var(--orange2)}
+  .phone-box{min-width:270px;max-width:320px}
+  .phone-box .rows{display:grid;gap:6px;margin-top:6px}
+  .phone-row{display:flex;justify-content:space-between;gap:10px;padding:7px 8px;border-radius:10px;background:rgba(255,255,255,.03);font-size:12px}
+  .phone-row b{color:var(--text)}
+  .phone-row span{color:var(--muted)}
+  .phone-row.sel-wrong{background:rgba(255,93,99,.12);border:1px solid rgba(255,93,99,.25)}
+  .phone-row.sel-right{background:rgba(52,214,131,.12);border:1px solid rgba(52,214,131,.25)}
+
+  .controls{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+  @media (max-width:900px){.controls{grid-template-columns:1fr}}
+  .progress-wrap{display:grid;gap:8px}
+  .progress-head{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .progress{height:10px;background:#0a1219;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+  .bar{height:100%;width:0;background:linear-gradient(90deg,var(--orange),var(--blue),var(--green))}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  button{appearance:none;border:1px solid var(--line);background:linear-gradient(180deg,#16232e,#101a22);color:var(--text);padding:11px 14px;border-radius:14px;font-weight:700;cursor:pointer;transition:.15s transform,.15s border-color,.15s background}
+  button:hover{transform:translateY(-1px);border-color:#496883}
+  button.primary{background:linear-gradient(180deg,#ffb548,#ff9300);color:#221406;border-color:#ffb548}
+  button.green{background:linear-gradient(180deg,#41df8f,#21b86f);color:#072014;border-color:#57e59d}
+  button.red{background:linear-gradient(180deg,#ff7a7f,#ff5d63);color:#26090b;border-color:#ff8d92}
+  button.small{padding:8px 10px;font-size:12px}
+
+  .missions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  @media (max-width:900px){.missions{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:620px){.missions{grid-template-columns:1fr}}
+  .mission-btn{padding:12px;border-radius:16px;border:1px solid var(--line);background:linear-gradient(180deg,#13202a,#0e171f);text-align:left}
+  .mission-btn .n{display:block;font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:11px;letter-spacing:1px;margin-bottom:6px}
+  .mission-btn .t{display:block;font-size:14px;font-weight:800;line-height:1.25;margin-bottom:4px}
+  .mission-btn .s{display:block;font-size:12px;color:var(--muted)}
+  .mission-btn.active{border-color:#ffb548;box-shadow:0 0 0 1px rgba(255,181,72,.35) inset;background:linear-gradient(180deg,#1a2d3b,#111b23)}
+
+  .rule-strip{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .rule-pill{padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#0d151c;font-size:12px;color:var(--muted)}
+  .rule-pill b{color:var(--text)}
+
+  .quiz{display:none;margin-top:4px}
+  .quiz.active{display:block}
+  .quiz-list{display:grid;gap:12px}
+  .q{background:var(--panel3);border:1px solid var(--line);border-radius:18px;padding:14px}
+  .q .qn{font-size:11px;letter-spacing:1px;color:var(--orange2);font-family:Orbitron,Inter,sans-serif;margin-bottom:8px}
+  .q .qt{font-size:15px;font-weight:800;line-height:1.4}
+  .opts{display:grid;gap:8px;margin-top:12px}
+  .opt{padding:11px 12px;border-radius:12px;background:#0d151c;border:1px solid var(--line);cursor:pointer;font-size:13px;color:var(--text)}
+  .opt:hover{border-color:#496883}
+  .opt.correct{border-color:rgba(52,214,131,.45);background:rgba(52,214,131,.12)}
+  .opt.wrong{border-color:rgba(255,93,99,.45);background:rgba(255,93,99,.12)}
+  .fb{display:none;margin-top:10px;font-size:13px;line-height:1.45}
+  .fb.show{display:block}
+  .fb.ok{color:var(--green)} .fb.no{color:var(--red)}
+  .quiz-score{margin-top:8px;text-align:center;font-family:Orbitron,Inter,sans-serif;color:var(--orange2);font-size:16px}
+
+  .footer{margin-top:14px;color:var(--muted);font-size:12px;line-height:1.5;padding:0 4px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{padding:9px 12px;border-radius:999px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.8px}
+  .tab.active{background:linear-gradient(180deg,#ffb548,#ff9300);color:#231507;border-color:#ffb548}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>DSB 2.5D Delivery Training Simulator</h1>
+      <div class="sub">A more realistic game-style training experience for stand-up coaching. Every mission follows the same rule: <b>Go → Scan → Place → Photo → Swipe</b>. Use the delivery option that matches the real location — <b>do not change Mailroom to Reception, Rear Door to Front Door, or any other option just to finish faster.</b></div>
+      <div class="badge-row">
+        <div class="mini-badge"><b>Visual style:</b> 2.5D isometric delivery simulator</div>
+        <div class="mini-badge"><b>Training mode:</b> slow phases for explanation</div>
+        <div class="mini-badge"><b>Focus:</b> real DSB behaviors</div>
+      </div>
+    </div>
+    <div class="tabs">
+      <button id="simTab" class="tab active">Simulator</button>
+      <button id="quizTab" class="tab">Quiz</button>
+    </div>
+  </div>
+
+  <div class="shell">
+    <aside class="panel side">
+      <div class="title-sm">Mission briefing</div>
+      <div id="missionTitle" class="mission-title"></div>
+      <div id="scenario" class="scenario"></div>
+      <div id="phasePill" class="phase-pill intro">Intro</div>
+
+      <div class="text-card">
+        <h3 id="phaseCardTitle">Phase objective</h3>
+        <p id="phaseCardText"></p>
+      </div>
+
+      <div class="flow">
+        <div class="small bad">
+          <h4>Wrong way</h4>
+          <p id="wrongText"></p>
+        </div>
+        <div class="small good">
+          <h4>Correct way</h4>
+          <p id="correctText"></p>
+        </div>
+      </div>
+
+      <div class="text-card">
+        <h3>Coaching tip</h3>
+        <p id="tipText"></p>
+      </div>
+
+      <div class="text-card">
+        <h3>Standard flow</h3>
+        <ul>
+          <li>Go to the delivery location.</li>
+          <li>Scan the package at the location.</li>
+          <li>Place the package safely.</li>
+          <li>Take a photo if no person is present.</li>
+          <li>Swipe to finish.</li>
+        </ul>
+      </div>
+    </aside>
+
+    <main class="panel console">
+      <section id="simulatorView">
+        <div class="topbar">
+          <div class="topbar-left">
+            <div class="mission-counter" id="missionCounter"></div>
+            <div class="status" id="statusText">Auto mode • slow training phases</div>
+          </div>
+          <div class="topbar-right">
+            <button class="small" id="prevMission">◀ Mission</button>
+            <button class="small" id="prevPhase">◀ Phase</button>
+            <button class="small primary" id="playPause">Pause</button>
+            <button class="small" id="nextPhase">Phase ▶</button>
+            <button class="small" id="nextMission">Mission ▶</button>
+          </div>
+        </div>
+
+        <div class="screen-frame">
+          <div class="screen-inner">
+            <canvas id="scene" width="1280" height="720"></canvas>
+            <div class="overlay-top">
+              <div id="phaseChip" class="overlay-chip intro">Intro</div>
+              <div class="overlay-chip">2.5D Training Mode</div>
+            </div>
+            <div class="overlay-bottom">
+              <div class="rule-box">
+                <div class="lbl">Rule</div>
+                <div class="txt" id="ruleText"></div>
+              </div>
+              <div class="phone-box">
+                <div class="lbl">Delivery app panel</div>
+                <div class="rows" id="phoneRows"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="progress-wrap">
+            <div class="progress-head">
+              <span id="progressLabel">Phase progress</span>
+              <span id="timeLabel"></span>
+            </div>
+            <div class="progress"><div id="bar" class="bar"></div></div>
+          </div>
+          <div class="btns">
+            <button id="autoMode" class="green">Auto Mode</button>
+            <button id="manualMode">Manual Mode</button>
+            <button id="restartBtn" class="red">Restart Mission</button>
+          </div>
+        </div>
+
+        <div class="rule-strip">
+          <div class="rule-pill"><b>Rule:</b> One package, one location, one photo, one delivery.</div>
+          <div class="rule-pill"><b>Key:</b> Select the option that matches the real delivery location.</div>
+          <div class="rule-pill"><b>Attended:</b> Only when a real person receives the package.</div>
+        </div>
+
+        <div style="margin-top:12px" class="missions" id="missions"></div>
+      </section>
+
+      <section id="quizView" class="quiz">
+        <div class="title-sm">Knowledge check</div>
+        <div class="text-card" style="margin-top:10px;margin-bottom:12px">
+          <h3>Quiz goal</h3>
+          <p>Use the same rules from the simulator. The most important idea: the selected delivery option must match the real delivery location.</p>
+        </div>
+        <div id="quizList" class="quiz-list"></div>
+        <div id="quizScore" class="quiz-score"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="footer">
+    Built for training and stand-up coaching. Content reflects the delivery-quality rules shown in the user's Delivery Quality Training material, including the standard flow <b>Go → Scan → Place → Photo → Swipe</b> and the need to choose the correct delivery location such as <b>Front Door, Rear Door, Side Door, Garage, Mailroom, Locker, Reception, Another Safe Location</b>.
+  </div>
+</div>
+
+<script>
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+
+const phases = [
+  {key:'intro', label:'Intro', dur:4.5},
+  {key:'wrong', label:'Wrong Way', dur:8.0},
+  {key:'why', label:'Why This Hurts DSB', dur:4.2},
+  {key:'correct', label:'Correct Way', dur:8.0},
+  {key:'tip', label:'Coaching Tip', dur:4.2},
+];
+
+const missions = [
+  {
+    title:'Simultaneous Deliveries',
+    scenario:'Apartment building with 3 separate units',
+    category:'Multiple stops',
+    rule:'One package, one location, one delivery.',
+    wrong:'The DA leaves multiple packages in the lobby and completes all stops from one spot.',
+    why:'Each stop must be completed at its own delivery location. Completing several stops together creates a Simultaneous Deliveries defect.',
+    correct:'The DA walks to each unit, scans at the real location, and finishes one stop at a time.',
+    tip:'If the app did not group the stops as one address, treat every package as its own delivery.',
+    app:{assigned:'Unit-by-unit delivery', wrong:'Completed together in lobby', right:'Completed separately at each unit'},
+    scene:'apartment'
+  },
+  {
+    title:'Delivered >50m From Pin',
+    scenario:'Townhouse community',
+    category:'Distance from pin',
+    rule:'Scan and deliver at the correct location.',
+    wrong:'The DA leaves the package near the curb or parking area, far from the geopin.',
+    why:'If the package is more than 50 meters from the delivery pin without a valid reason, it hurts DSB.',
+    correct:'The DA walks to the townhouse door and delivers at the real pin location.',
+    tip:'If you cannot safely reach the pin, contact Driver Support instead of leaving the package far away.',
+    app:{assigned:'Front Door', wrong:'Dropped near curb', right:'Delivered at front door pin'},
+    scene:'townhouse'
+  },
+  {
+    title:'Incorrect Scan Usage — Attended',
+    scenario:'Business mailroom / reception area',
+    category:'Delivery type selection',
+    rule:'The selected option must match the real delivery location.',
+    wrong:'The package goes to the mailroom, but the DA changes the option from Mailroom Clerk to Reception.',
+    why:'Changing Mailroom to Reception creates an Incorrect Scan Usage defect because the selected option does not match reality.',
+    correct:'If the package went to the mailroom and a mailroom employee received it, the DA keeps Mailroom Clerk selected.',
+    tip:'Do not switch the option to finish faster or skip a required step.',
+    app:{assigned:'Mailroom Clerk', wrong:'Reception', right:'Mailroom Clerk'},
+    scene:'business'
+  },
+  {
+    title:'Incorrect Scan Usage — Unattended',
+    scenario:'House with back entrance access',
+    category:'Delivery location selection',
+    rule:'Choose the location that matches where the package was placed.',
+    wrong:'The package is placed at the rear door, but the DA changes the option to Front Door.',
+    why:'Changing Rear Door to Front Door makes the delivery type inaccurate, which creates an Incorrect Scan Usage defect.',
+    correct:'If the package was left at the rear door, the DA selects Rear Door and takes a clear photo of that location.',
+    tip:'Other options include Side Door, Garage, Locker, Mailroom, and Another Safe Location — use them only when they truly match.',
+    app:{assigned:'Rear Door', wrong:'Front Door', right:'Rear Door'},
+    scene:'rear'
+  },
+  {
+    title:'No POD on Delivery',
+    scenario:'Front door unattended delivery',
+    category:'Photo on delivery',
+    rule:'No person present = photo required.',
+    wrong:'The package is left at the door, but the DA finishes the stop without taking a photo.',
+    why:'An unattended delivery needs a clear photo-on-delivery. No photo means a No POD defect.',
+    correct:'The DA places the package safely, steps back, and takes a clear photo showing the package and the real drop-off spot.',
+    tip:'Keep faces, people, and license plates out of the photo whenever possible.',
+    app:{assigned:'Front Door', wrong:'No photo taken', right:'Photo captured at front door'},
+    scene:'pod'
+  },
+  {
+    title:'Scanned Not Delivered / Not Returned',
+    scenario:'Package still in van at the end of route',
+    category:'RTS compliance',
+    rule:'If you did not deliver it, do not scan it as delivered.',
+    wrong:'The package stays in the van, but the stop is scanned as delivered.',
+    why:'A package that was not delivered must not be marked delivered. If it cannot be delivered, it must go back to station.',
+    correct:'The DA returns the package to the station and scans it as RTS.',
+    tip:'Before ending the route, verify that completed stops are not still physically inside the van.',
+    app:{assigned:'Undeliverable package', wrong:'Scanned delivered', right:'Returned to station (RTS)'},
+    scene:'station'
+  }
+];
+
+const quizData = [
+  {q:'A package was delivered to the mailroom. What should the DA select?', opts:['Reception','Mailroom Clerk','Another Safe Location'], ok:1, fb:'Select the option that matches the real delivery location. If it went to the mailroom and a person there received it, use Mailroom Clerk.'},
+  {q:'The package was placed at the rear door. Which option matches the real location?', opts:['Front Door','Rear Door','Garage'], ok:1, fb:'Choose the location that matches where the package was actually placed.'},
+  {q:'Can the DA complete three apartment stops together from the lobby?', opts:['Yes, if it is faster','No, each stop must be completed separately','Yes, if the DA already scanned them'], ok:1, fb:'Each stop must be completed at its own delivery location unless the app itself grouped them as one address.'},
+  {q:'If no person is present, what is required before swiping to finish?', opts:['Nothing else','A clear photo-on-delivery','A call to the customer every time'], ok:1, fb:'No person present means a clear POD is required.'},
+  {q:'The DA cannot deliver the package and it remains in the van. What should happen?', opts:['Scan it as delivered anyway','Hide it and continue route','Return it to station and scan RTS'], ok:2, fb:'If it was not delivered, it must not be scanned delivered. Return it to station and scan RTS.'},
+  {q:'The app says Front Door, but the DA leaves it in a locker. What should the DA do?', opts:['Select Front Door anyway','Select Locker only if the package really went there','Select Reception'], ok:1, fb:'The option must match the real delivery location.'},
+  {q:'What is the standard flow?', opts:['Scan → Drive → Swipe → Photo → Go','Go → Scan → Place → Photo → Swipe','Photo → Place → Go → Scan → Swipe'], ok:1, fb:'The standard flow is Go → Scan → Place → Photo → Swipe.'},
+  {q:'What creates a Delivered >50m defect?', opts:['Leaving the package far from the pin without a valid reason','Taking a photo at the door','Handing the package to the customer'], ok:0, fb:'Leaving the package far from the pin without a valid reason hurts DSB.'}
+];
+
+const ui = {
+  missionTitle: document.getElementById('missionTitle'),
+  scenario: document.getElementById('scenario'),
+  phasePill: document.getElementById('phasePill'),
+  phaseCardTitle: document.getElementById('phaseCardTitle'),
+  phaseCardText: document.getElementById('phaseCardText'),
+  wrongText: document.getElementById('wrongText'),
+  correctText: document.getElementById('correctText'),
+  tipText: document.getElementById('tipText'),
+  missionCounter: document.getElementById('missionCounter'),
+  phaseChip: document.getElementById('phaseChip'),
+  ruleText: document.getElementById('ruleText'),
+  phoneRows: document.getElementById('phoneRows'),
+  bar: document.getElementById('bar'),
+  progressLabel: document.getElementById('progressLabel'),
+  timeLabel: document.getElementById('timeLabel'),
+  statusText: document.getElementById('statusText'),
+  missions: document.getElementById('missions'),
+};
+
+let missionIndex = 0;
+let phaseIndex = 0;
+let phaseTime = 0;
+let playing = true;
+let autoMode = true;
+let lastTs = performance.now();
+let VAN_OPEN = false;
+const VAN_EXIT = {x:0.4, y:2.75};
+const WSTART = {apartment:[2.55,3.0], townhouse:[2.35,3.2], business:[3.0,3.05], rear:[3.25,3.2], pod:[3.85,3.05], station:[2.05,3.5]};
+
+function phase(){ return phases[phaseIndex]; }
+function mission(){ return missions[missionIndex]; }
+function clamp(v,a,b){ return Math.max(a,Math.min(b,v)); }
+
+function iso(x,y,z=0){
+  const ox = 630, oy = 330, tw = 86, th = 43, zh = 24;
+  return {x: ox + (x-y)*(tw/2), y: oy + (x+y)*(th/2) - z*zh};
+}
+function drawPoly(points, fill, stroke='rgba(0,0,0,.2)'){
+  ctx.beginPath(); ctx.moveTo(points[0].x,points[0].y);
+  for(let i=1;i<points.length;i++) ctx.lineTo(points[i].x,points[i].y);
+  ctx.closePath();
+  ctx.fillStyle=fill; ctx.fill();
+  if(stroke){ ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.stroke(); }
+}
+function shade(hex,amt){
+  const n = hex.replace('#','');
+  const r = clamp(parseInt(n.slice(0,2),16)+amt,0,255);
+  const g = clamp(parseInt(n.slice(2,4),16)+amt,0,255);
+  const b = clamp(parseInt(n.slice(4,6),16)+amt,0,255);
+  return `rgb(${r},${g},${b})`;
+}
+function block(x,y,w,d,h,color){
+  const p1=iso(x,y,h), p2=iso(x+w,y,h), p3=iso(x+w,y+d,h), p4=iso(x,y+d,h);
+  const b1=iso(x,y,0), b2=iso(x+w,y,0), b3=iso(x+w,y+d,0), b4=iso(x,y+d,0);
+  drawPoly([p1,p2,p3,p4], shade(color,20));
+  drawPoly([p2,b2,b3,p3], shade(color,-18));
+  drawPoly([p1,p4,b4,b1], shade(color,-8));
+}
+function tile(x,y,color){
+  const a=iso(x,y,0), b=iso(x+1,y,0), c=iso(x+1,y+1,0), d=iso(x,y+1,0);
+  drawPoly([a,b,c,d], color,'rgba(0,0,0,.07)');
+}
+function drawGround(){
+  for(let x=-2;x<8;x++){
+    for(let y=-1;y<7;y++){
+      const path = (x>=0 && x<=6 && y>=1 && y<=5 && (x===1||x===2||x===3||x===4)) ? '#d8c9af' : '#8aa37c';
+      const alt = (x+y)%2===0 ? 5 : -5;
+      tile(x,y, shade(path,alt));
+    }
+  }
+  // road strip on left
+  const a=iso(-2,0,0), b=iso(0,0,0), c=iso(0,7,0), d=iso(-2,7,0);
+  drawPoly([a,b,c,d],'#495763');
+  // road line
+  for(let i=0;i<6;i++){
+    const t1=iso(-1.15,i+.15,0), t2=iso(-.75,i+.15,0), t3=iso(-.75,i+.45,0), t4=iso(-1.15,i+.45,0);
+    drawPoly([t1,t2,t3,t4],'#f1d47d',null);
+  }
+}
+function drawLabel(x,y,text,color='#ffffff',size=18,weight='700',align='left'){
+  ctx.fillStyle=color; ctx.font=`${weight} ${size}px Inter`; ctx.textAlign=align; ctx.fillText(text,x,y);
+}
+function drawPin(x,y,color='#ff5d63'){
+  const p=iso(x,y,1.15);
+  const pulse=(phaseTime*1.4)%1;                     // expanding ring
+  ctx.save(); ctx.globalAlpha=(1-pulse)*0.5; ctx.strokeStyle=color; ctx.lineWidth=3;
+  ctx.beginPath(); ctx.ellipse(p.x,p.y+14,6+pulse*22,3+pulse*9,0,0,Math.PI*2); ctx.stroke(); ctx.restore();
+  const bob=Math.sin(phaseTime*4)*2;                 // gentle float
+  ctx.fillStyle=color;
+  ctx.beginPath(); ctx.arc(p.x,p.y-18+bob,10,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(p.x,p.y-6+bob); ctx.lineTo(p.x-8,p.y+14+bob); ctx.lineTo(p.x+8,p.y+14+bob); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(p.x,p.y-18+bob,4,0,Math.PI*2); ctx.fill();
+}
+function drawBoxObj(x,y,z=.05,color='#c98f4f'){
+  block(x,y,.34,.34,.28,color);
+  const top=iso(x+.17,y+.17,.29);
+  ctx.strokeStyle='rgba(255,255,255,.35)';
+  ctx.beginPath(); ctx.moveTo(top.x-8,top.y+1); ctx.lineTo(top.x+8,top.y+1); ctx.stroke();
+}
+function drawHuman(x,y,opt={}){
+  const p=iso(x,y,0);
+  const sc=opt.scale||1, lift=opt.lift||0;
+  const bob = opt.walk ? Math.abs(Math.sin((opt.walk||0)*Math.PI*2))*4 : 0;
+  // directional shadow (sun is upper-right, so shadow falls lower-left)
+  ctx.save(); ctx.fillStyle=`rgba(10,16,12,${0.22*Math.max(.18,1-lift/24)})`; ctx.beginPath(); ctx.ellipse(p.x-9*sc,p.y+9,22*sc,8*sc,-0.32,0,Math.PI*2); ctx.fill(); ctx.restore();
+  if(opt.walk){ const w=opt.walk||0; for(let d=0;d<3;d++){ const ph2=(w*1.5-d*0.33)%1; if(ph2<0||ph2>1) continue; const a=(1-ph2)*0.26, rr=3+ph2*7; ctx.fillStyle=`rgba(226,214,188,${a})`; ctx.beginPath(); ctx.ellipse(p.x-10-ph2*16,p.y+9-ph2*4,rr,rr*0.6,0,0,Math.PI*2); ctx.fill(); } }
+  ctx.save(); ctx.translate(p.x,p.y-42-bob-lift); if(sc!==1) ctx.scale(sc,sc);
+  // shorts + legs + sneakers
+  ctx.fillStyle='#2b3540'; roundRect(-11,22,9,11,3,true); roundRect(2,22,9,11,3,true);
+  ctx.strokeStyle='#e7b58c'; ctx.lineWidth=5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(-6,32); ctx.lineTo(-7,42); ctx.moveTo(6,32); ctx.lineTo(7,42); ctx.stroke();
+  ctx.fillStyle='#eef2f5'; roundRect(-12,42,10,6,3,true); roundRect(2,42,10,6,3,true);
+  ctx.fillStyle='#b9c2c9'; roundRect(-12,46,10,2,2,true); roundRect(2,46,10,2,2,true);
+  // back arm
+  ctx.strokeStyle='#e7b58c'; ctx.lineWidth=5;
+  ctx.beginPath(); ctx.moveTo(-13,2); ctx.lineTo(-23,16); ctx.stroke();
+  // torso: navy tee then blue vest
+  ctx.fillStyle='#16222e'; roundRect(-15,-6,30,30,8,true);
+  ctx.fillStyle= opt.uniform!==false ? '#2f88df' : '#8d5cff';
+  roundRect(-14,-4,28,28,7,true);
+  ctx.fillStyle='#1e6fd0'; roundRect(6,-4,8,28,7,true); // vest shade side
+  // reflective stripe + chest logo
+  ctx.fillStyle='#ffe08f'; roundRect(-14,12,28,5,2,true);
+  ctx.strokeStyle='#ff9900'; ctx.lineWidth=3; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(0,3,7,.15,2.9,false); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(6.4,2); ctx.lineTo(9,0); ctx.lineTo(7.4,3.4); ctx.stroke();
+  // lanyard + badge
+  ctx.strokeStyle='#d24b4b'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(-6,-8); ctx.lineTo(-2,2); ctx.moveTo(6,-8); ctx.lineTo(2,2); ctx.stroke();
+  ctx.fillStyle='#eef2f5'; roundRect(-4,1,8,6,1.5,true);
+  // collar
+  ctx.fillStyle='#16222e'; ctx.beginPath(); ctx.moveTo(-5,-6); ctx.lineTo(0,-1); ctx.lineTo(5,-6); ctx.closePath(); ctx.fill();
+  // head + cap
+  ctx.fillStyle='#f2c9a7'; ctx.beginPath(); ctx.arc(0,-20,11,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#22468a'; ctx.beginPath(); ctx.arc(0,-23,11,Math.PI,0); ctx.fill();
+  ctx.fillStyle='#152a52'; roundRect(-12,-24,24,4,2,true); // cap brim
+  // front arm / hands hold items
+  if(opt.box){
+    ctx.strokeStyle='#e7b58c'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(13,2); ctx.lineTo(20,14); ctx.stroke();
+    ctx.fillStyle='#cd9150'; roundRect(-7,4,26,18,3,true); ctx.fillStyle='#b37d43'; roundRect(-7,4,26,4,3,true);
+    ctx.fillStyle='#2f6fd6'; roundRect(4,4,4,18,1,true); ctx.fillStyle='#ff9900'; roundRect(-3,13,16,2,1,true);
+  } else if(opt.phone){
+    ctx.strokeStyle='#e7b58c'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(13,2); ctx.lineTo(22,opt.raise?-8:16); ctx.stroke();
+    ctx.fillStyle='#0f1720'; roundRect(18,opt.raise?-20:12,11,18,3,true);
+    ctx.fillStyle=opt.flash?'#ffffff':'#bde8ff'; roundRect(20,opt.raise?-18:14,7,12,2,true);
+  } else {
+    ctx.strokeStyle='#e7b58c'; ctx.lineWidth=5; ctx.beginPath(); ctx.moveTo(13,2); ctx.lineTo(21,16); ctx.stroke();
+    ctx.fillStyle='#11181e'; roundRect(18,12,9,12,2,true); ctx.fillStyle='#7fe0b0'; roundRect(20,15,5,5,1,true); // scanner
+  }
+  ctx.restore();
+}
+function roundRect(x,y,w,h,r,fill){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r);
+  if(fill) ctx.fill(); else ctx.stroke();
+}
+function drawVan(x,y){
+  const p=iso(x,y,0);
+  ctx.save(); ctx.translate(p.x,p.y-48);
+  ctx.fillStyle='rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(0,58,78,20,0,0,Math.PI*2); ctx.fill();
+  // body
+  ctx.fillStyle='#eef2f5'; roundRect(-82,0,150,54,16,true);
+  ctx.fillStyle='#dfe6eb'; roundRect(-82,0,150,10,16,true);
+  ctx.fillStyle='#c9d4de'; roundRect(-74,10,32,22,10,true);
+  ctx.fillStyle='#bde8ff'; roundRect(-72,12,28,18,8,true);
+  ctx.fillStyle='#1f55ab'; roundRect(-82,36,150,18,0,true);
+  // smile logo
+  ctx.strokeStyle='#ff9900'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.arc(18,29,18,.2,2.9,false); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(35,22); ctx.lineTo(42,18); ctx.lineTo(38,27); ctx.stroke();
+  // wheels
+  ctx.fillStyle='#101418'; ctx.beginPath(); ctx.arc(-46,54,16,0,Math.PI*2); ctx.arc(34,54,16,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#5f6770'; ctx.beginPath(); ctx.arc(-46,54,7,0,Math.PI*2); ctx.arc(34,54,7,0,Math.PI*2); ctx.fill();
+  // open rear doors + cargo glow (right/back side)
+  if(VAN_OPEN){
+    ctx.fillStyle='#0e1620'; roundRect(50,6,20,42,4,true);                 // dark cargo interior
+    ctx.fillStyle='rgba(255,225,150,.18)'; roundRect(52,9,16,36,3,true);    // warm cargo light
+    ctx.save(); ctx.fillStyle='#dfe6eb';
+    ctx.translate(68,8); ctx.rotate(-0.5); roundRect(0,0,8,44,3,true); ctx.restore(); // swung door
+    ctx.fillStyle='#cdd6dc'; roundRect(60,2,8,6,2,true);
+    // a parcel visible inside
+    ctx.fillStyle='#cd9150'; roundRect(54,30,12,10,2,true);
+  }
+  ctx.restore();
+}
+function drawBuildingApartment(){
+  castShadow(3.8,1.2,2.2,2.3,1.55);
+  block(3.8,1.2,2.2,2.3,1.55,'#66798a');
+  block(3.72,1.12,2.36,.1,1.62,'#7d90a2');
+  // three numbered doors on the front (+x) face, with a lit window above each
+  [1.95,2.55,3.15].forEach((yy,i)=>{
+    const d=iso(6.0,yy,0);
+    ctx.fillStyle='#ffd98a'; ctx.fillRect(d.x-11,d.y-66,22,12);
+    ctx.fillStyle='#1b252e'; ctx.fillRect(d.x-13,d.y-50,26,50);
+    ctx.fillStyle='#2a3742'; ctx.fillRect(d.x-13,d.y-50,26,3);
+    ctx.fillStyle='#a7c9e7'; ctx.fillRect(d.x-9,d.y-44,18,13);
+    drawLabel(d.x,d.y-71,String(i+1),'#ffd45f',12,'800','center');
+  });
+}
+function drawTownhouse(){
+  castShadow(3.9,1.6,1.8,1.7,1.25);
+  block(3.9,1.6,1.8,1.7,1.25,'#c6b090');
+  // roof
+  block(3.85,1.55,1.9,.12,1.5,'#7a4d3a');
+  const d=iso(5.2,2.65,0); ctx.fillStyle='#3a322d'; ctx.fillRect(d.x-18,d.y-62,36,62);
+  const w=iso(4.25,2.05,0); ctx.fillStyle='#dfeef9'; ctx.fillRect(w.x-18,w.y-56,34,24);
+}
+function drawBusiness(){
+  castShadow(3.8,1.4,2.5,2.2,1.35);
+  block(3.8,1.4,2.5,2.2,1.35,'#6a7282');
+  block(4.35,2.25,.9,.75,1.2,'#2f3a46'); // mailroom kiosk / room block
+}
+function drawRearHouse(){
+  castShadow(3.9,1.55,1.8,1.8,1.2);
+  block(3.9,1.55,1.8,1.8,1.2,'#9fb3c1');
+  const f=iso(5.15,2.65,0); ctx.fillStyle='#2a3138'; ctx.fillRect(f.x-20,f.y-60,40,60);
+  const back=iso(4.2,3.1,0); ctx.fillStyle='#2a3138'; ctx.fillRect(back.x-16,back.y-46,32,46);
+  drawLabel(f.x,f.y-72,'FRONT','white',11,'800','center');
+  drawLabel(back.x,back.y-56,'REAR','white',11,'800','center');
+}
+function drawFrontDoorHouse(){
+  castShadow(3.95,1.6,1.8,1.7,1.2);
+  block(3.95,1.6,1.8,1.7,1.2,'#bea48f');
+  const d=iso(5.15,2.65,0); ctx.fillStyle='#302a28'; ctx.fillRect(d.x-20,d.y-62,40,62);
+}
+function drawStation(){
+  castShadow(3.7,1.2,2.9,2.3,1.45);
+  block(3.7,1.2,2.9,2.3,1.45,'#4f6372');
+  const d=iso(5.05,2.95,0); ctx.fillStyle='#22303a'; ctx.fillRect(d.x-38,d.y-70,76,70);
+  drawLabel(d.x,d.y-84,'STATION','white',16,'800','center');
+}
+function softShadow(cx,cy,rx,ry,a=.22){ ctx.save(); ctx.fillStyle=`rgba(8,14,10,${a})`; ctx.beginPath(); ctx.ellipse(cx,cy,rx,ry,0,0,Math.PI*2); ctx.fill(); ctx.restore(); }
+function drawTree(x,y){
+  const base=iso(x+.5,y+.5,0); softShadow(base.x+6,base.y+2,26,11,.20);
+  block(x+.42,y+.42,.16,.16,.55,'#6b4a2e');
+  const t=iso(x+.5,y+.5,.55);
+  ctx.fillStyle='#2f6b3a'; ctx.beginPath(); ctx.ellipse(t.x,t.y-22,26,22,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#367a44'; ctx.beginPath(); ctx.ellipse(t.x-7,t.y-26,18,15,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#46944f'; ctx.beginPath(); ctx.ellipse(t.x-9,t.y-31,11,9,0,0,Math.PI*2); ctx.fill();
+}
+function drawBush(x,y){
+  const b=iso(x+.5,y+.5,0); softShadow(b.x+3,b.y+1,18,7,.18);
+  ctx.fillStyle='#2f6b3a'; ctx.beginPath(); ctx.ellipse(b.x,b.y-6,16,11,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#46944f'; ctx.beginPath(); ctx.ellipse(b.x-4,b.y-9,9,6,0,0,Math.PI*2); ctx.fill();
+}
+function drawStreetlight(x,y){
+  const b=iso(x+.5,y+.5,0); softShadow(b.x,b.y,16,7,.18);
+  // warm light pool
+  const lp=ctx.createRadialGradient(b.x,b.y-4,4,b.x,b.y-4,70); lp.addColorStop(0,'rgba(255,225,150,.22)'); lp.addColorStop(1,'rgba(255,225,150,0)');
+  ctx.fillStyle=lp; ctx.beginPath(); ctx.ellipse(b.x,b.y-2,70,30,0,0,Math.PI*2); ctx.fill();
+  block(x+.45,y+.45,.1,.1,1.6,'#586676');
+  const top=iso(x+.5,y+.5,1.6);
+  ctx.strokeStyle='#586676'; ctx.lineWidth=4; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(top.x,top.y-34); ctx.lineTo(top.x+15,top.y-36); ctx.stroke(); // arm
+  ctx.fillStyle='#2c3743'; roundRect(top.x+9,top.y-40,16,7,3,true);
+  ctx.fillStyle='#ffe08a'; ctx.beginPath(); ctx.ellipse(top.x+17,top.y-32,6,4,0,0,Math.PI*2); ctx.fill();
+  const gl=ctx.createRadialGradient(top.x+17,top.y-32,1,top.x+17,top.y-32,16); gl.addColorStop(0,'rgba(255,224,138,.5)'); gl.addColorStop(1,'rgba(255,224,138,0)');
+  ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(top.x+17,top.y-32,16,0,Math.PI*2); ctx.fill();
+}
+function drawHydrant(x,y){
+  const b=iso(x+.5,y+.5,0); softShadow(b.x,b.y+1,10,5,.18);
+  block(x+.45,y+.45,.1,.1,.28,'#d24b4b');
+  const t=iso(x+.5,y+.5,.3); ctx.fillStyle='#b53b3b'; ctx.beginPath(); ctx.arc(t.x,t.y-2,4,0,Math.PI*2); ctx.fill();
+}
+function drawDecor(){
+  drawTree(5.6,-0.2); drawTree(0.0,-0.1); drawTree(6.7,4.8);
+  drawTree(0.3,4.7); drawBush(1.5,5.3); drawBush(2.3,5.4);
+  drawStreetlight(-1.2,4.1); drawHydrant(0.5,4.3);
+}
+function castShadow(x,y,w,d,h){
+  const sh=h*0.75;
+  drawPoly([iso(x,y), iso(x+w,y), iso(x+w,y+d+sh), iso(x,y+d+sh)], 'rgba(24,20,34,.20)', null);
+}
+function drawNeighbor(x,y,w,d,h,wall,roof,flat){
+  castShadow(x,y,w,d,h);
+  block(x,y,w,d,h,wall);
+  if(flat){ block(x-0.05,y-0.05,w+0.1,d+0.1,h+0.05,roof); }
+  else { block(x+0.07,y+0.07,w-0.14,d-0.14,h+0.24,roof); }
+  for(let i=0;i<2;i++){ const wp=iso(x+w,y+0.32+i*0.52,h*0.6); ctx.fillStyle=(i+Math.round(x*3))%2? '#ffd28a':'#26323c'; ctx.fillRect(wp.x-1,wp.y-15,11,12); }
+  const lp=iso(x+0.4,y+d,h*0.55); ctx.fillStyle='#ffd28a'; ctx.fillRect(lp.x-11,lp.y-15,11,12);
+}
+function drawNeighborhood(){
+  drawNeighbor(-0.3,-1.05,1.1,1.1,1.0,'#b29478','#7a4d3a');
+  drawNeighbor(1.1,-1.15,1.05,1.0,1.5,'#9aacba','#63738a',true);
+  drawNeighbor(2.4,-1.15,1.35,1.1,1.95,'#79859b','#566074',true);
+  drawNeighbor(4.0,-1.05,1.1,1.0,1.15,'#c2ac8c','#7a4d3a');
+  drawNeighbor(5.3,-1.05,1.25,1.1,1.6,'#8b9cab','#5d6d84',true);
+  drawNeighbor(6.7,-0.85,1.0,1.0,1.05,'#b89e88','#6b4632');
+}
+function drawSceneGeneric(){
+  // golden-hour sky
+  const sky=ctx.createLinearGradient(0,0,0,470);
+  sky.addColorStop(0,'#27345f'); sky.addColorStop(.4,'#5b6fa0'); sky.addColorStop(.68,'#c98a6a'); sky.addColorStop(.86,'#f2b173'); sky.addColorStop(1,'#ffd9a0');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,1280,470);
+  // low warm sun + bloom
+  let bloom=ctx.createRadialGradient(1040,210,10,1040,210,300);
+  bloom.addColorStop(0,'rgba(255,228,170,.85)'); bloom.addColorStop(.35,'rgba(255,200,130,.30)'); bloom.addColorStop(1,'rgba(255,200,130,0)');
+  ctx.fillStyle=bloom; ctx.fillRect(700,-90,640,600);
+  ctx.fillStyle='#fff1cf'; ctx.beginPath(); ctx.arc(1040,210,50,0,Math.PI*2); ctx.fill();
+  // warm clouds
+  [[230,120,60,16,.45],[300,134,44,13,.40],[720,90,72,18,.42],[800,104,50,14,.36],[520,150,50,13,.40]].forEach(c=>{ctx.fillStyle=`rgba(255,236,214,${c[4]})`;ctx.beginPath();ctx.ellipse(c[0],c[1],c[2],c[3],0,0,Math.PI*2);ctx.fill();});
+  // haze band at the horizon
+  ctx.fillStyle='rgba(255,214,170,.30)'; ctx.fillRect(0,418,1280,54);
+  // hills (warm, hazy)
+  ctx.fillStyle='#8a9a6e'; ctx.beginPath(); ctx.moveTo(0,442); for(let i=0;i<=1280;i+=80){ctx.lineTo(i,402+Math.sin(i*.011)*34);} ctx.lineTo(1280,470); ctx.lineTo(0,470); ctx.closePath(); ctx.fill();
+  ctx.fillStyle='#728a5e'; ctx.beginPath(); ctx.moveTo(0,470); for(let i=0;i<=1280;i+=70){ctx.lineTo(i,442+Math.sin(i*.014+2)*26);} ctx.lineTo(1280,470); ctx.closePath(); ctx.fill();
+  // grass field (warm)
+  const grd=ctx.createLinearGradient(0,440,0,720); grd.addColorStop(0,'#86a05a'); grd.addColorStop(1,'#456a40');
+  ctx.fillStyle=grd; ctx.fillRect(0,440,1280,280);
+  // platform shadow
+  softShadow(628,612,392,86,.22); softShadow(628,606,330,64,.16);
+  drawGround();
+  drawNeighborhood();
+  drawDecor();
+  drawVan(-0.8,2.4);
+}
+function drawEntrance(k, scene){
+  const sp=WSTART[scene]||[2.6,3.0];
+  const door=[0.15,2.78];                 // just at the van's open rear
+  if(k<0.12) return;                       // door still opening, driver inside
+  if(k<0.46){                              // emerge + step down from the van
+    const f=(k-0.12)/0.34;
+    const x=door[0]-0.18+0.18*f, y=door[1]-0.10+0.10*f;
+    drawHuman(x,y,{uniform:true, scale:0.62+0.38*f, lift:16*(1-f), box:f>0.55, walk:f>0.35?k*3:0});
+    if(f>0.85){ // dust puff on landing
+      const q=iso(x,y,0); ctx.fillStyle='rgba(226,214,188,.35)';
+      ctx.beginPath(); ctx.ellipse(q.x-8,q.y+8,10,4,0,0,Math.PI*2); ctx.ellipse(q.x+6,q.y+9,7,3,0,0,Math.PI*2); ctx.fill();
+    }
+  } else {                                 // walk to the staging point
+    const f=(k-0.46)/0.54;
+    const e=f<0.5?2*f*f:1-Math.pow(-2*f+2,2)/2;
+    const x=door[0]+(sp[0]-door[0])*e, y=door[1]+(sp[1]-door[1])*e;
+    drawHuman(x,y,{uniform:true,box:true,walk:k*3.4});
+  }
+}
+function drawMissionScene(m, ph, t){
+  VAN_OPEN = (ph==='intro' && t<0.92);
+  drawSceneGeneric();
+  switch(m.scene){
+    case 'apartment': drawBuildingApartment(); break;
+    case 'townhouse': drawTownhouse(); break;
+    case 'business': drawBusiness(); break;
+    case 'rear': drawRearHouse(); break;
+    case 'pod': drawFrontDoorHouse(); break;
+    case 'station': drawStation(); break;
+  }
+  // ── INTRO: driver gets out of the van and walks in ──
+  if(ph==='intro'){ drawEntrance(t, m.scene); introOverlay(m); return; }
+
+  if(m.scene==='apartment'){
+    const dys=[1.95,2.55,3.15];
+    dys.forEach(yy=>drawPin(5.78,yy, ph==='correct' ? '#34d683' : '#ff5d63'));
+    const tickAt=(yy,col)=>{const q=iso(6.0,yy,1.08); drawTick(q.x-14,q.y-10,col);};
+    if(ph==='wrong'){
+      drawHuman(2.55,3.0,{uniform:true});
+      drawBoxObj(2.8,3.0,.02); drawBoxObj(3.05,3.2,.02); drawBoxObj(2.72,2.72,.02);
+      if(t>.35) tickAt(dys[0],'#ff5d63');
+      if(t>.55) tickAt(dys[1],'#ff5d63');
+      if(t>.75) tickAt(dys[2],'#ff5d63');
+    } else if(ph==='correct'){
+      const stops=[[5.3,1.95],[5.3,2.55],[5.3,3.15]];
+      const seg=Math.min(2.99,t*3); const i=Math.floor(seg); const f=seg-i;
+      const start=i===0?[2.6,3.0]:stops[i-1]; const end=stops[i];
+      const x=start[0]+(end[0]-start[0])*f, y=start[1]+(end[1]-start[1])*f;
+      drawHuman(x,y,{uniform:true,box:f<.88,walk:t*3});
+      for(let s=0;s<i;s++) tickAt(dys[s],'#34d683');
+      if(f>.88) drawBoxObj(end[0]+.55,end[1],.02);
+    } else {
+      drawHuman(2.55,3.0,{uniform:true}); drawBoxObj(2.8,3.0,.02); drawBoxObj(3.05,3.2,.02); drawBoxObj(2.72,2.72,.02);
+    }
+  }
+
+  if(m.scene==='townhouse'){
+    drawPin(5.25,2.65, ph==='correct' ? '#34d683' : '#ff5d63');
+    if(ph==='wrong'){
+      drawHuman(2.35,3.2,{uniform:true,box:t<.45}); if(t>.45) drawBoxObj(2.55,3.25,.02); drawDistance(220,160,380,62,'Too far from pin');
+    } else if(ph==='correct'){
+      const x=2.35+(2.75*t), y=3.2-(.52*t); drawHuman(x,y,{uniform:true,box:t<.92,walk:t*2.4});
+      if(t>.92) drawBoxObj(5.18,2.7,.02); drawDistance(220,160,380,Math.round(62*(1-t)),'Move to geopin');
+    } else {
+      drawHuman(2.35,3.2,{uniform:true}); drawBoxObj(2.55,3.25,.02); drawDistance(220,160,380,62,'Too far from pin');
+    }
+  }
+
+  if(m.scene==='business'){
+    // app panel on scene
+    const mail=iso(4.75,2.55,0), recep=iso(5.75,2.35,0);
+    if(ph==='wrong'){
+      drawHuman(3.0,3.05,{uniform:true,phone:true,raise:true}); drawBoxObj(4.45,2.65,.02); drawPersonAt(mail.x,mail.y-10,'#8661ff');
+      highlightSpot(recep.x,recep.y-12,'#ff5d63','Selected'); highlightSpot(mail.x,mail.y-16,'#ffd45f','Actual');
+    } else if(ph==='correct'){
+      drawHuman(3.8,2.95,{uniform:true,box:t<.45}); drawPersonAt(mail.x,mail.y-10,'#8661ff');
+      if(t>.45) drawBoxObj(4.45,2.65,.02); highlightSpot(mail.x,mail.y-16,'#34d683','Selected');
+    } else {
+      drawHuman(3.0,3.05,{uniform:true,phone:true}); drawBoxObj(4.45,2.65,.02); drawPersonAt(mail.x,mail.y-10,'#8661ff');
+      highlightSpot(recep.x,recep.y-12,ph==='why' ? '#ff5d63' : '#ffd45f', ph==='why' ? 'Wrong' : 'Option');
+    }
+  }
+
+  if(m.scene==='rear'){
+    const front=iso(5.25,2.7,0), rear=iso(4.2,3.15,0);
+    if(ph==='wrong'){
+      drawHuman(3.25,3.2,{uniform:true,phone:true,raise:true}); drawBoxObj(4.15,3.15,.02); highlightSpot(rear.x,rear.y-12,'#ffd45f','Actual'); highlightSpot(front.x,front.y-16,'#ff5d63','Selected');
+    } else if(ph==='correct'){
+      const x=3.05+(1.0*t), y=3.2-(.02*t); drawHuman(x,y,{uniform:true,box:t<.5,walk:t*2}); if(t>.5) drawBoxObj(4.15,3.15,.02); highlightSpot(rear.x,rear.y-12,'#34d683','Selected');
+    } else {
+      drawHuman(3.2,3.2,{uniform:true,phone:true}); drawBoxObj(4.15,3.15,.02); highlightSpot(front.x,front.y-16,ph==='why' ? '#ff5d63' : '#ffd45f', ph==='why' ? 'Wrong' : 'Changed');
+    }
+  }
+
+  if(m.scene==='pod'){
+    const d=iso(5.15,2.68,0);
+    if(ph==='wrong'){
+      drawBoxObj(5.12,2.68,.02); drawHuman(3.85,3.05,{uniform:true,walk:t*2});
+      noPhotoStamp();
+    } else if(ph==='correct'){
+      const flash=t>.45&&t<.58; drawBoxObj(5.12,2.68,.02); drawHuman(4.45,3.0,{uniform:true,phone:true,raise:true,flash:flash}); if(flash) flashScreen(); photoFrame();
+    } else {
+      drawBoxObj(5.12,2.68,.02); drawHuman(4.25,3.0,{uniform:true,phone:ph!=='intro'}); if(ph==='why') noPhotoStamp();
+    }
+  }
+
+  if(m.scene==='station'){
+    if(ph==='wrong'){
+      drawVan(2.35,2.75); drawHuman(2.05,3.5,{uniform:true,phone:true,raise:true}); drawBoxObj(1.9,2.92,.02); badDeliveredTag();
+    } else if(ph==='correct'){
+      const x=3.1+(1.2*t), y=3.35-(.5*t); drawHuman(x,y,{uniform:true,box:t<.75,walk:t*2}); if(t>.75) drawBoxObj(5.15,2.95,.02); goodRTSTag();
+    } else {
+      drawVan(2.35,2.75); drawHuman(2.05,3.5,{uniform:true,phone:true}); drawBoxObj(1.9,2.92,.02); if(ph==='why') badDeliveredTag();
+    }
+  }
+
+  if(ph==='intro') introOverlay(m);
+  if(ph==='why') whyOverlay(m);
+  if(ph==='tip') tipOverlay(m);
+}
+function drawTick(x,y,color){
+  ctx.strokeStyle=color; ctx.lineWidth=6; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(x,y+12); ctx.lineTo(x+10,y+22); ctx.lineTo(x+28,y); ctx.stroke();
+}
+function drawDistance(x,y,w,val,label){
+  ctx.fillStyle='rgba(7,11,15,.78)'; roundRect(x,y,w,68,14,true);
+  drawLabel(x+16,y+24,label,'#9bb0c1',13,'700');
+  ctx.fillStyle='#0e151c'; roundRect(x+16,y+38,w-32,14,9,true);
+  const pw = (w-34)*clamp(val/80,0,1); ctx.fillStyle= val>50 ? '#ff5d63' : '#34d683'; roundRect(x+17,y+39,pw,12,8,true);
+  drawLabel(x+w-18,y+24,`${val}m`, val>50 ? '#ff5d63' : '#34d683',14,'800','right');
+}
+function drawPersonAt(x,y,color){
+  ctx.fillStyle='rgba(0,0,0,.18)'; ctx.beginPath(); ctx.ellipse(x,y+26,14,8,0,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle=color; roundRect(x-12,y-2,24,32,8,true); ctx.fillStyle='#f2c9a7'; ctx.beginPath(); ctx.arc(x,y-10,10,0,Math.PI*2); ctx.fill();
+}
+function highlightSpot(x,y,color,text){
+  ctx.strokeStyle=color; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(x,y,16,0,Math.PI*2); ctx.stroke();
+  ctx.fillStyle='rgba(7,11,15,.78)'; roundRect(x-34,y-36,68,18,8,true); drawLabel(x,y-23,text,color,11,'800','center');
+}
+function noPhotoStamp(){
+  ctx.fillStyle='rgba(7,11,15,.78)'; roundRect(200,110,210,70,16,true); drawLabel(225,140,'NO POD', '#ff5d63',22,'800'); drawLabel(225,162,'No photo taken', '#d9a1a4',13,'700');
+}
+function photoFrame(){
+  ctx.fillStyle='rgba(7,11,15,.84)'; roundRect(772,150,214,154,16,true);
+  ctx.strokeStyle='#34d683'; ctx.lineWidth=3; roundRect(772,150,214,154,16,false);
+  drawLabel(879,176,'PHOTO CAPTURED','#34d683',13,'800','center');
+  // mini photo preview: box at the door
+  ctx.fillStyle='#26303a'; roundRect(792,188,174,98,8,true);
+  ctx.fillStyle='#3c513f'; roundRect(792,250,174,36,8,true);
+  ctx.fillStyle='#2a3138'; roundRect(902,196,42,90,4,true);
+  ctx.fillStyle='#cd9150'; roundRect(858,250,34,24,3,true); ctx.fillStyle='#b37d43'; roundRect(858,250,34,6,3,true);
+  ctx.strokeStyle='#34d683'; ctx.lineWidth=4; ctx.lineCap='round'; ctx.beginPath(); ctx.moveTo(806,224); ctx.lineTo(814,232); ctx.lineTo(830,214); ctx.stroke();
+}
+function flashScreen(){ ctx.fillStyle='rgba(255,255,255,.24)'; ctx.fillRect(0,0,1280,720); }
+function badDeliveredTag(){ ctx.fillStyle='rgba(7,11,15,.78)'; roundRect(190,110,260,74,16,true); drawLabel(216,139,'SCANNED DELIVERED', '#ff5d63',19,'800'); drawLabel(216,162,'Package still in van', '#d9a1a4',13,'700'); }
+function goodRTSTag(){ ctx.fillStyle='rgba(7,11,15,.78)'; roundRect(850,110,210,74,16,true); drawLabel(876,139,'RTS COMPLETE', '#34d683',20,'800'); drawLabel(876,162,'Returned to station', '#bae7cd',13,'700'); }
+function introOverlay(m){
+  ctx.fillStyle='rgba(4,8,12,.22)'; ctx.fillRect(0,0,1280,720);
+  ctx.fillStyle='rgba(7,11,15,.86)'; roundRect(330,24,620,118,20,true);
+  ctx.fillStyle='#ff9900'; roundRect(330,24,620,5,20,true);
+  drawLabel(640,58,`MISSION ${String(missionIndex+1).padStart(2,'0')} · ${m.category.toUpperCase()}`,'#ffb648',14,'800','center');
+  drawLabel(640,90,m.title,'#ffffff',26,'800','center');
+  drawLabel(640,120,m.scenario,'#9bb0c1',15,'700','center');
+}
+function whyOverlay(m){
+  ctx.fillStyle='rgba(7,11,15,.72)'; roundRect(120,550,1040,114,18,true);
+  drawLabel(150,586,'WHY THIS HURTS DSB','#ffd45f',18,'800');
+  wrapText(m.why,150,614,980,28,'#edf5fb','600 20px Inter');
+}
+function tipOverlay(m){
+  ctx.fillStyle='rgba(7,11,15,.72)'; roundRect(160,545,960,120,18,true);
+  drawLabel(192,582,'COACHING TIP','#ffb648',18,'800');
+  wrapText(m.tip,192,612,900,28,'#edf5fb','600 20px Inter');
+}
+function wrapText(text,x,y,maxWidth,lineHeight,color,font){
+  ctx.fillStyle=color; ctx.font=font; ctx.textAlign='left';
+  const words=text.split(' '); let line=''; let yy=y;
+  for(let n=0;n<words.length;n++){
+    const test=line+words[n]+' '; const w=ctx.measureText(test).width;
+    if(w>maxWidth&&n>0){ ctx.fillText(line,x,yy); line=words[n]+' '; yy+=lineHeight; }
+    else line=test;
+  }
+  ctx.fillText(line,x,yy);
+}
+
+function renderInfo(){
+  const m=mission(), p=phase();
+  ui.missionTitle.textContent = m.title;
+  ui.scenario.textContent = m.scenario;
+  ui.missionCounter.textContent = `MISSION ${missionIndex+1} / ${missions.length}`;
+  ui.ruleText.innerHTML = `<span class="em">${m.rule}</span>`;
+  ui.wrongText.textContent = m.wrong;
+  ui.correctText.textContent = m.correct;
+  ui.tipText.textContent = m.tip;
+  ui.phoneRows.innerHTML = '';
+  const rows=[];
+  if(m.app.assigned) rows.push({label:'Assigned', value:m.app.assigned});
+  if(p.key==='wrong' || p.key==='why'){ rows.push({label:'DA Selected', value:m.app.wrong, cls:'sel-wrong'}); }
+  if(p.key==='correct' || p.key==='tip'){ rows.push({label:'DA Selected', value:m.app.right, cls:'sel-right'}); }
+  if(m.title.includes('No POD')){ rows.push({label:'Photo', value:(p.key==='wrong'||p.key==='why') ? 'Missing' : 'Captured', cls:(p.key==='wrong'||p.key==='why') ? 'sel-wrong':'sel-right'}); }
+  rows.forEach(r=>{
+    const el=document.createElement('div'); el.className=`phone-row ${r.cls||''}`; el.innerHTML=`<span>${r.label}</span><b>${r.value}</b>`; ui.phoneRows.appendChild(el);
+  });
+
+  const phaseMap = {
+    intro:{cls:'intro', title:'Mission introduction', text:`Get ready to coach ${m.title}. Watch the scene, explain the mistake, then show the correct standard work.`},
+    wrong:{cls:'wrong', title:'Wrong way', text:m.wrong},
+    why:{cls:'why', title:'Why this hurts DSB', text:m.why},
+    correct:{cls:'correct', title:'Correct way', text:m.correct},
+    tip:{cls:'tip', title:'Coaching tip', text:m.tip}
+  };
+  const cfg = phaseMap[p.key];
+  ui.phasePill.className = `phase-pill ${cfg.cls}`; ui.phasePill.textContent = cfg.title;
+  ui.phaseChip.className = `overlay-chip ${cfg.cls}`; ui.phaseChip.textContent = cfg.title;
+  ui.phaseCardTitle.textContent = cfg.title;
+  ui.phaseCardText.textContent = cfg.text;
+  ui.statusText.textContent = `${autoMode ? 'Auto mode' : 'Manual mode'} • ${playing ? 'running' : 'paused'} • ${p.dur.toFixed(1)}s phase`;
+  ui.progressLabel.textContent = `${cfg.title} progress`;
+  ui.timeLabel.textContent = `${phaseTime.toFixed(1)} / ${p.dur.toFixed(1)} sec`;
+  ui.bar.style.width = `${(phaseTime/p.dur)*100}%`;
+}
+
+function draw(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const p=phase();
+  const t=clamp(phaseTime/p.dur,0,1);
+  drawMissionScene(mission(),p.key,t);
+  // golden-hour warm grade
+  ctx.fillStyle='rgba(255,150,60,.07)'; ctx.fillRect(0,0,1280,720);
+  // subtle per-phase color grade
+  if(p.key==='wrong'||p.key==='why'){ ctx.fillStyle='rgba(255,70,70,.05)'; ctx.fillRect(0,0,1280,720); }
+  else if(p.key==='correct'||p.key==='tip'){ ctx.fillStyle='rgba(50,210,120,.05)'; ctx.fillRect(0,0,1280,720); }
+  // phase-start flash
+  if(phaseTime<0.3){ const fa=1-phaseTime/0.3; const col=(p.key==='correct')?`rgba(130,255,185,${fa*0.18})`:(p.key==='wrong')?`rgba(255,120,120,${fa*0.16})`:`rgba(255,255,255,${fa*0.13})`; ctx.fillStyle=col; ctx.fillRect(0,0,1280,720); }
+  // cinematic vignette
+  const vg=ctx.createRadialGradient(640,360,260,640,360,720);
+  vg.addColorStop(0,'rgba(0,0,0,0)'); vg.addColorStop(1,'rgba(4,8,12,.42)');
+  ctx.fillStyle=vg; ctx.fillRect(0,0,1280,720);
+}
+
+function nextPhase(){
+  if(phaseIndex < phases.length-1){ phaseIndex++; phaseTime=0; }
+  else { if(autoMode) nextMission(true); else { phaseTime=phases[phaseIndex].dur; playing=false; } }
+}
+function prevPhase(){ if(phaseIndex>0){ phaseIndex--; phaseTime=0; } else { phaseTime=0; } renderAll(); }
+function nextMission(fromAuto=false){ missionIndex=(missionIndex+1)%missions.length; phaseIndex=0; phaseTime=0; renderAll(); }
+function prevMission(){ missionIndex=(missionIndex+missions.length-1)%missions.length; phaseIndex=0; phaseTime=0; renderAll(); }
+function restartMission(){ phaseIndex=0; phaseTime=0; renderAll(); }
+
+function tick(ts){
+  const dt = Math.min((ts-lastTs)/1000,0.05); lastTs=ts;
+  if(playing){
+    phaseTime += dt;
+    if(phaseTime >= phase().dur){
+      if(autoMode){ nextPhase(); }
+      else { phaseTime = phase().dur; playing = false; }
+    }
+  }
+  renderAll(false);
+  requestAnimationFrame(tick);
+}
+function renderAll(updateMissionGrid=true){ renderInfo(); if(updateMissionGrid) renderMissionButtons(); draw(); }
+
+function renderMissionButtons(){
+  ui.missions.innerHTML='';
+  missions.forEach((m,i)=>{
+    const b=document.createElement('button');
+    b.className=`mission-btn ${i===missionIndex?'active':''}`;
+    b.innerHTML=`<span class="n">MISSION ${String(i+1).padStart(2,'0')}</span><span class="t">${m.title}</span><span class="s">${m.scenario}</span>`;
+    b.onclick=()=>{ missionIndex=i; phaseIndex=0; phaseTime=0; playing=true; renderAll(); };
+    ui.missions.appendChild(b);
+  });
+}
+
+// Controls
+const playPause = document.getElementById('playPause');
+document.getElementById('prevMission').onclick=()=>{prevMission();};
+document.getElementById('nextMission').onclick=()=>{nextMission();};
+document.getElementById('prevPhase').onclick=()=>{prevPhase();};
+document.getElementById('nextPhase').onclick=()=>{ if(!autoMode){ playing=false; nextPhase(); playing=false; } else { phaseTime=phase().dur; } };
+playPause.onclick=()=>{ playing=!playing; playPause.textContent=playing?'Pause':'Play'; renderInfo(); };
+document.getElementById('autoMode').onclick=()=>{ autoMode=true; playing=true; playPause.textContent='Pause'; renderInfo(); };
+document.getElementById('manualMode').onclick=()=>{ autoMode=false; playing=false; playPause.textContent='Play'; renderInfo(); };
+document.getElementById('restartBtn').onclick=()=>{ restartMission(); playing=true; playPause.textContent='Pause'; };
+
+// Tabs
+const simTab=document.getElementById('simTab'), quizTab=document.getElementById('quizTab');
+const simulatorView=document.getElementById('simulatorView'), quizView=document.getElementById('quizView');
+simTab.onclick=()=>{ simTab.classList.add('active'); quizTab.classList.remove('active'); simulatorView.style.display='block'; quizView.classList.remove('active'); };
+quizTab.onclick=()=>{ quizTab.classList.add('active'); simTab.classList.remove('active'); simulatorView.style.display='none'; quizView.classList.add('active'); };
+
+// Quiz
+function buildQuiz(){
+  const wrap=document.getElementById('quizList'); wrap.innerHTML='';
+  const scoreEl=document.getElementById('quizScore'); scoreEl.textContent='';
+  let answered=0, correct=0;
+  quizData.forEach((q,qi)=>{
+    const card=document.createElement('div'); card.className='q';
+    card.innerHTML=`<div class="qn">QUESTION ${qi+1}</div><div class="qt">${q.q}</div>`;
+    const opts=document.createElement('div'); opts.className='opts';
+    const fb=document.createElement('div'); fb.className='fb';
+    q.opts.forEach((opt,oi)=>{
+      const btn=document.createElement('div'); btn.className='opt'; btn.textContent=opt;
+      btn.onclick=()=>{
+        if(card.dataset.done) return;
+        card.dataset.done='1'; answered++;
+        if(oi===q.ok){ btn.classList.add('correct'); correct++; fb.className='fb ok show'; fb.innerHTML=`✓ ${q.fb}`; }
+        else { btn.classList.add('wrong'); [...opts.children][q.ok].classList.add('correct'); fb.className='fb no show'; fb.innerHTML=`✕ ${q.fb}`; }
+        if(answered===quizData.length){ scoreEl.textContent=`FINAL SCORE: ${correct} / ${quizData.length} ${correct===quizData.length?'• PERFECT':''}`; }
+      };
+      opts.appendChild(btn);
+    });
+    card.appendChild(opts); card.appendChild(fb); wrap.appendChild(card);
+  });
+}
+
+// keyboard
+window.addEventListener('keydown',(e)=>{
+  if(['INPUT','TEXTAREA'].includes(document.activeElement.tagName)) return;
+  if(e.key===' '){ e.preventDefault(); playing=!playing; playPause.textContent=playing?'Pause':'Play'; }
+  if(e.key==='ArrowRight'){ if(autoMode) phaseTime=phase().dur; else { nextPhase(); } }
+  if(e.key==='ArrowLeft'){ prevPhase(); }
+  if(e.key==='ArrowUp'){ prevMission(); }
+  if(e.key==='ArrowDown'){ nextMission(); }
+});
+
+renderMissionButtons();
+renderInfo();
+buildQuiz();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
